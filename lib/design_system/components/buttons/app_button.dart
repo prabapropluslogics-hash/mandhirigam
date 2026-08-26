@@ -13,6 +13,8 @@ class AppButton extends StatelessWidget {
     this.isLoading = false,
     this.leadingIcon,
     this.trailingIcon,
+    this.backgroundColor,
+    this.foregroundColor,
   });
 
   final String label;
@@ -22,22 +24,34 @@ class AppButton extends StatelessWidget {
   final bool isLoading;
   final IconData? leadingIcon;
   final IconData? trailingIcon;
+  final Color? backgroundColor;
+  final Color? foregroundColor;
 
   @override
   Widget build(BuildContext context) {
     final ColorScheme colors = Theme.of(context).colorScheme;
     final VoidCallback? effectiveOnPressed = isLoading ? null : onPressed;
+    final Color loaderColor = foregroundColor ?? colors.onPrimary;
+
+    final ButtonStyle? overrideStyle =
+        (backgroundColor != null || foregroundColor != null)
+            ? ElevatedButton.styleFrom(
+                backgroundColor: backgroundColor,
+                foregroundColor: foregroundColor,
+              )
+            : null;
 
     return SizedBox(
       height: appButtonHeight(size),
       width: isExpanded ? double.infinity : null,
       child: ElevatedButton(
         onPressed: effectiveOnPressed,
+        style: overrideStyle,
         child: AppButtonChild(
           label: label,
           isLoading: isLoading,
           isExpanded: isExpanded,
-          loaderColor: colors.onPrimary,
+          loaderColor: loaderColor,
           leadingIcon: leadingIcon,
           trailingIcon: trailingIcon,
         ),

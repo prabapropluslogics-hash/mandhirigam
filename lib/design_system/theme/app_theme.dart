@@ -7,9 +7,6 @@ import 'app_spacing.dart';
 import 'app_typography.dart';
 
 /// Builds light/dark [ThemeData] from design tokens.
-///
-/// All component themes reference [AppColors], [AppRadii], [AppSizes],
-/// [AppSpacing], and [AppTypography] — never local magic numbers.
 abstract final class AppTheme {
   static ThemeData light() => _build(Brightness.light);
 
@@ -30,8 +27,7 @@ abstract final class AppTheme {
       onError: AppColors.onError,
       surface: AppColors.surfaceFor(brightness),
       onSurface: AppColors.textPrimaryFor(brightness),
-      surfaceContainerHighest:
-          isLight ? AppColors.surfaceMuted : AppColors.surfaceMutedDark,
+      surfaceContainerHighest: AppColors.surfaceMutedFor(brightness),
       outline: AppColors.borderFor(brightness),
       outlineVariant: AppColors.dividerFor(brightness),
     );
@@ -47,6 +43,7 @@ abstract final class AppTheme {
       brightness: brightness,
       colorScheme: colorScheme,
       scaffoldBackgroundColor: AppColors.backgroundFor(brightness),
+      splashFactory: NoSplash.splashFactory,
       textTheme: textTheme,
       primaryTextTheme: textTheme,
       disabledColor: disabledForeground,
@@ -54,7 +51,7 @@ abstract final class AppTheme {
       appBarTheme: AppBarTheme(
         elevation: 0,
         scrolledUnderElevation: 0,
-        centerTitle: true,
+        centerTitle: false,
         backgroundColor: AppColors.backgroundFor(brightness),
         foregroundColor: colorScheme.onSurface,
         titleTextStyle: textTheme.titleLarge,
@@ -76,12 +73,10 @@ abstract final class AppTheme {
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
           minimumSize: const Size.fromHeight(AppSizes.buttonHeightMd),
-          foregroundColor: colorScheme.primary,
+          foregroundColor: colorScheme.onSurface,
           disabledForegroundColor: disabledForeground,
-          side: BorderSide(
-            color: colorScheme.outline,
-            width: AppSizes.borderThin,
-          ),
+          backgroundColor: AppColors.surfaceMutedFor(brightness),
+          side: BorderSide.none,
           shape: RoundedRectangleBorder(borderRadius: AppRadii.buttonBorder),
           textStyle: textTheme.labelLarge,
           padding: AppInsets.buttonHorizontal,
@@ -107,49 +102,40 @@ abstract final class AppTheme {
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: AppColors.surfaceFor(brightness),
+        fillColor: AppColors.surfaceMutedFor(brightness),
         contentPadding: AppInsets.inputContent,
         border: OutlineInputBorder(
-          borderRadius: AppRadii.textFieldBorder,
-          borderSide: BorderSide(
-            color: colorScheme.outline,
-            width: AppSizes.borderThin,
-          ),
+          borderRadius: AppRadii.searchBarBorder,
+          borderSide: BorderSide.none,
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: AppRadii.textFieldBorder,
-          borderSide: BorderSide(
-            color: colorScheme.outline,
-            width: AppSizes.borderThin,
-          ),
+          borderRadius: AppRadii.searchBarBorder,
+          borderSide: BorderSide.none,
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: AppRadii.textFieldBorder,
+          borderRadius: AppRadii.searchBarBorder,
           borderSide: BorderSide(
             color: colorScheme.primary,
             width: AppSizes.borderMedium,
           ),
         ),
         errorBorder: OutlineInputBorder(
-          borderRadius: AppRadii.textFieldBorder,
+          borderRadius: AppRadii.searchBarBorder,
           borderSide: BorderSide(
             color: colorScheme.error,
             width: AppSizes.borderThin,
           ),
         ),
         focusedErrorBorder: OutlineInputBorder(
-          borderRadius: AppRadii.textFieldBorder,
+          borderRadius: AppRadii.searchBarBorder,
           borderSide: BorderSide(
             color: colorScheme.error,
             width: AppSizes.borderMedium,
           ),
         ),
         disabledBorder: OutlineInputBorder(
-          borderRadius: AppRadii.textFieldBorder,
-          borderSide: BorderSide(
-            color: disabledBackground,
-            width: AppSizes.borderThin,
-          ),
+          borderRadius: AppRadii.searchBarBorder,
+          borderSide: BorderSide.none,
         ),
         hintStyle: textTheme.bodyMedium?.copyWith(
           color: AppColors.textSecondaryFor(brightness),
@@ -162,14 +148,8 @@ abstract final class AppTheme {
       ),
       cardTheme: CardThemeData(
         elevation: 0,
-        color: colorScheme.surface,
-        shape: RoundedRectangleBorder(
-          borderRadius: AppRadii.cardBorder,
-          side: BorderSide(
-            color: colorScheme.outlineVariant,
-            width: AppSizes.borderThin,
-          ),
-        ),
+        color: AppColors.surfaceMutedFor(brightness),
+        shape: RoundedRectangleBorder(borderRadius: AppRadii.cardBorder),
         margin: EdgeInsets.zero,
         clipBehavior: Clip.antiAlias,
       ),
@@ -180,6 +160,25 @@ abstract final class AppTheme {
         titleTextStyle: textTheme.titleLarge,
         contentTextStyle: textTheme.bodyMedium,
         insetPadding: AppInsets.lg,
+      ),
+      bottomSheetTheme: BottomSheetThemeData(
+        backgroundColor: AppColors.surfaceFor(brightness),
+        modalBackgroundColor: AppColors.surfaceFor(brightness),
+        elevation: 0,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(
+            top: Radius.circular(AppRadii.bottomSheet),
+          ),
+        ),
+        dragHandleColor: AppColors.neutral600,
+        showDragHandle: false,
+      ),
+      sliderTheme: SliderThemeData(
+        activeTrackColor: colorScheme.primary,
+        inactiveTrackColor: AppColors.surfaceElevatedDark,
+        thumbColor: colorScheme.primary,
+        overlayColor: colorScheme.primary.withValues(alpha: 0.16),
+        trackHeight: AppSizes.progressHeight,
       ),
       dividerTheme: DividerThemeData(
         color: colorScheme.outlineVariant,
@@ -193,6 +192,7 @@ abstract final class AppTheme {
       progressIndicatorTheme: ProgressIndicatorThemeData(
         color: colorScheme.primary,
         circularTrackColor: colorScheme.outlineVariant,
+        linearTrackColor: AppColors.surfaceElevatedDark,
       ),
     );
   }

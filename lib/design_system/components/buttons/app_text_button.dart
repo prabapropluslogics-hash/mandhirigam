@@ -13,6 +13,7 @@ class AppTextButton extends StatelessWidget {
     this.isLoading = false,
     this.leadingIcon,
     this.trailingIcon,
+    this.compact = false,
   });
 
   final String label;
@@ -22,26 +23,33 @@ class AppTextButton extends StatelessWidget {
   final bool isLoading;
   final IconData? leadingIcon;
   final IconData? trailingIcon;
+  final bool compact;
 
   @override
   Widget build(BuildContext context) {
     final ColorScheme colors = Theme.of(context).colorScheme;
     final VoidCallback? effectiveOnPressed = isLoading ? null : onPressed;
 
+    final Widget button = TextButton(
+      onPressed: effectiveOnPressed,
+      child: AppButtonChild(
+        label: label,
+        isLoading: isLoading,
+        isExpanded: isExpanded,
+        loaderColor: colors.primary,
+        leadingIcon: leadingIcon,
+        trailingIcon: trailingIcon,
+      ),
+    );
+
+    if (compact) {
+      return button;
+    }
+
     return SizedBox(
       height: appButtonHeight(size),
       width: isExpanded ? double.infinity : null,
-      child: TextButton(
-        onPressed: effectiveOnPressed,
-        child: AppButtonChild(
-          label: label,
-          isLoading: isLoading,
-          isExpanded: isExpanded,
-          loaderColor: colors.primary,
-          leadingIcon: leadingIcon,
-          trailingIcon: trailingIcon,
-        ),
-      ),
+      child: button,
     );
   }
 }

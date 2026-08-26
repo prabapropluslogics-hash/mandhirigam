@@ -1,25 +1,27 @@
 import 'package:flutter/material.dart';
 
-import '../app/foundation_placeholder_page.dart';
+import '../features/book_details/presentation/screens/book_details_screen.dart';
+import '../features/shell/presentation/screens/main_shell.dart';
 import 'app_routes.dart';
 
 /// Centralized route table and navigation helpers.
-///
-/// Keep all named routes here so feature modules do not register routes ad-hoc.
 abstract final class AppRouter {
   static final GlobalKey<NavigatorState> navigatorKey =
       GlobalKey<NavigatorState>();
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     switch (settings.name) {
-      case AppRoutes.foundation:
-        return _page(const FoundationPlaceholderPage(), settings);
+      case AppRoutes.home:
+        return _page(const MainShell(), settings);
+      case AppRoutes.bookDetails:
+        final String bookId = settings.arguments is String
+            ? settings.arguments! as String
+            : 'amber-sea';
+        return _page(BookDetailsScreen(bookId: bookId), settings);
       default:
         return _page(
-          Scaffold(
-            body: Center(
-              child: Text('Route not found: ${settings.name}'),
-            ),
+          const Scaffold(
+            body: Center(child: Text('Route not found')),
           ),
           settings,
         );

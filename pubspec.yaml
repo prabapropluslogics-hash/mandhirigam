@@ -23,6 +23,7 @@ flutter:
 
   assets:
     - assets/images/
+    - assets/images/covers/
     - assets/icons/
 
   # Register brand fonts here when files are added under assets/fonts/.

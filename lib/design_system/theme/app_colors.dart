@@ -2,35 +2,30 @@ import 'package:flutter/material.dart';
 
 /// Central color tokens for Maanthirigam.
 ///
-/// ## Provisional notice
-/// Brand and neutral hex values below are **provisional placeholders**.
-/// They exist so ThemeData and components can compile and stay consistent.
-/// Replace them in one place after UI screenshots/design tokens are finalized.
-///
-/// Screens and feature widgets must use these tokens (or [ThemeData]/
-/// [ColorScheme]) — never scatter raw `Color(0x...)` values.
+/// Values are taken from the product UI reference (dark charcoal + gold).
+/// Screens must use these tokens — never scatter raw `Color(0x...)` values.
 abstract final class AppColors {
   // ---------------------------------------------------------------------------
-  // Brand (PROVISIONAL — swap after design review)
+  // Brand — gold / bronze from the UI reference
   // ---------------------------------------------------------------------------
-  static const Color brandPrimary = Color(0xFF0F4C5C);
-  static const Color brandSecondary = Color(0xFF5C8A6A);
-  static const Color brandAccent = Color(0xFFC45C26);
+  static const Color brandPrimary = Color(0xFFC9A36A);
+  static const Color brandSecondary = Color(0xFFB08D57);
+  static const Color brandAccent = Color(0xFFE1C48A);
 
   // ---------------------------------------------------------------------------
-  // Neutrals (PROVISIONAL scale)
+  // Neutrals — charcoal scale from the UI reference
   // ---------------------------------------------------------------------------
   static const Color neutral0 = Color(0xFFFFFFFF);
-  static const Color neutral50 = Color(0xFFF7F8F8);
-  static const Color neutral100 = Color(0xFFEEF1F1);
-  static const Color neutral200 = Color(0xFFD8DEDE);
-  static const Color neutral300 = Color(0xFFB5BFBF);
-  static const Color neutral400 = Color(0xFF879494);
-  static const Color neutral500 = Color(0xFF5F6C6C);
-  static const Color neutral600 = Color(0xFF465151);
-  static const Color neutral700 = Color(0xFF343C3C);
-  static const Color neutral800 = Color(0xFF232929);
-  static const Color neutral900 = Color(0xFF141818);
+  static const Color neutral50 = Color(0xFFF4F1EA);
+  static const Color neutral100 = Color(0xFFE8E2D6);
+  static const Color neutral200 = Color(0xFFC9C2B5);
+  static const Color neutral300 = Color(0xFF9A9388);
+  static const Color neutral400 = Color(0xFF7A746B);
+  static const Color neutral500 = Color(0xFF8A8680);
+  static const Color neutral600 = Color(0xFF3A3A3A);
+  static const Color neutral700 = Color(0xFF2A2A2A);
+  static const Color neutral800 = Color(0xFF1A1A1A);
+  static const Color neutral900 = Color(0xFF0D0D0D);
 
   // ---------------------------------------------------------------------------
   // Semantic — status
@@ -45,51 +40,56 @@ abstract final class AppColors {
   static const Color onInfo = neutral0;
 
   // ---------------------------------------------------------------------------
-  // Semantic — surfaces & backgrounds (light defaults; dark via ThemeData)
+  // Semantic — surfaces & backgrounds
   // ---------------------------------------------------------------------------
-  static const Color background = neutral50;
-  static const Color backgroundDark = neutral900;
-  static const Color surface = neutral0;
-  static const Color surfaceDark = neutral800;
-  static const Color surfaceMuted = neutral100;
-  static const Color surfaceMutedDark = neutral700;
+  static const Color background = Color(0xFFF4F1EA);
+  static const Color backgroundDark = Color(0xFF0D0D0D);
+  static const Color surface = Color(0xFFFFFFFF);
+  static const Color surfaceDark = Color(0xFF1A1A1A);
+  static const Color surfaceMuted = Color(0xFFEDE8DE);
+  static const Color surfaceMutedDark = Color(0xFF242424);
+  static const Color surfaceElevatedDark = Color(0xFF2C2C2C);
 
-  /// Alias kept for existing theme references.
   static const Color scaffoldLight = background;
   static const Color scaffoldDark = backgroundDark;
   static const Color surfaceLight = surface;
 
+  static const Color featuredStart = Color(0xFFD4B07A);
+  static const Color featuredMid = Color(0xFF8A5A32);
+  static const Color featuredEnd = Color(0xFF2B1A10);
+
+  static const Color avatarFallback = Color(0xFF6E5A9E);
+
   // ---------------------------------------------------------------------------
   // Semantic — text
   // ---------------------------------------------------------------------------
-  static const Color textPrimary = neutral900;
-  static const Color textSecondary = neutral500;
-  static const Color textTertiary = neutral400;
-  static const Color textDisabled = neutral300;
-  static const Color textOnBrand = neutral0;
-  static const Color textPrimaryDark = neutral50;
-  static const Color textSecondaryDark = neutral300;
-  static const Color textDisabledDark = neutral600;
+  static const Color textPrimary = Color(0xFF141414);
+  static const Color textSecondary = Color(0xFF6F6A63);
+  static const Color textTertiary = Color(0xFF8A8680);
+  static const Color textDisabled = Color(0xFFB5AFA6);
+  static const Color textOnBrand = Color(0xFF1A140C);
+  static const Color textPrimaryDark = Color(0xFFF6F4F0);
+  static const Color textSecondaryDark = Color(0xFFA8A49E);
+  static const Color textDisabledDark = Color(0xFF6A6660);
 
-  /// Legacy aliases used by earlier foundation files.
   static const Color textPrimaryLight = textPrimary;
   static const Color textSecondaryLight = textSecondary;
 
   // ---------------------------------------------------------------------------
   // Semantic — borders, dividers, overlays, disabled
   // ---------------------------------------------------------------------------
-  static const Color border = neutral200;
-  static const Color borderStrong = neutral300;
-  static const Color borderDark = neutral600;
-  static const Color divider = neutral100;
-  static const Color dividerDark = neutral700;
+  static const Color border = Color(0xFFD8D2C8);
+  static const Color borderStrong = Color(0xFFC0B8AC);
+  static const Color borderDark = Color(0xFF333333);
+  static const Color divider = Color(0xFFE8E2D6);
+  static const Color dividerDark = Color(0xFF2A2A2A);
 
-  static const Color disabled = neutral200;
-  static const Color disabledDark = neutral700;
-  static const Color onDisabled = neutral400;
-  static const Color onDisabledDark = neutral500;
+  static const Color disabled = Color(0xFFD8D2C8);
+  static const Color disabledDark = Color(0xFF3A3A3A);
+  static const Color onDisabled = Color(0xFF8A8680);
+  static const Color onDisabledDark = Color(0xFF7A746B);
 
-  static const Color overlay = Color(0x66000000);
+  static const Color overlay = Color(0x99000000);
   static const Color shadow = Color(0xFF000000);
 
   // ---------------------------------------------------------------------------
@@ -115,4 +115,7 @@ abstract final class AppColors {
 
   static Color surfaceFor(Brightness brightness) =>
       brightness == Brightness.light ? surface : surfaceDark;
+
+  static Color surfaceMutedFor(Brightness brightness) =>
+      brightness == Brightness.light ? surfaceMuted : surfaceMutedDark;
 }

@@ -4,19 +4,16 @@ import 'app_colors.dart';
 
 /// Typography system for Maanthirigam.
 ///
-/// ## Provisional notice
-/// Font family and sizes are provisional until brand type specs arrive.
-/// Set [fontFamily] when font files are registered in `pubspec.yaml`.
-///
-/// Prefer named helpers ([pageTitle], [body], [button], …) or
-/// [ThemeData.textTheme] — do not invent ad-hoc [TextStyle]s in screens.
+/// UI copy uses the platform sans family. Book titles use a serif stack
+/// matching the reference (Georgia / Times).
 abstract final class AppTypography {
-  /// PROVISIONAL — replace with brand font family name when assets are added.
   static const String? fontFamily = null;
-
-  // ---------------------------------------------------------------------------
-  // Named roles (use these from screens / components)
-  // ---------------------------------------------------------------------------
+  static const String serifFamily = 'Georgia';
+  static const List<String> serifFallbacks = <String>[
+    'Times New Roman',
+    'Noto Serif',
+    'serif',
+  ];
 
   static TextStyle display(BuildContext context) =>
       Theme.of(context).textTheme.displaySmall!;
@@ -55,9 +52,21 @@ abstract final class AppTypography {
         );
   }
 
-  // ---------------------------------------------------------------------------
-  // Material TextTheme builder (wired into AppTheme)
-  // ---------------------------------------------------------------------------
+  static TextStyle bookTitle(
+    BuildContext context, {
+    double fontSize = 22,
+    FontWeight fontWeight = FontWeight.w600,
+    Color? color,
+  }) {
+    return TextStyle(
+      fontFamily: serifFamily,
+      fontFamilyFallback: serifFallbacks,
+      fontSize: fontSize,
+      fontWeight: fontWeight,
+      height: 1.2,
+      color: color ?? AppColors.textPrimaryFor(Theme.of(context).brightness),
+    );
+  }
 
   static TextTheme textTheme({required Brightness brightness}) {
     final Color primary = AppColors.textPrimaryFor(brightness);
@@ -75,24 +84,19 @@ abstract final class AppTypography {
     }
 
     return TextTheme(
-      // Display / large headings
       displayLarge: base(40, FontWeight.w700, height: 1.15),
       displayMedium: base(32, FontWeight.w700, height: 1.15),
       displaySmall: base(28, FontWeight.w700, height: 1.2),
-      // Page titles
       headlineLarge: base(24, FontWeight.w600, height: 1.25),
-      headlineMedium: base(20, FontWeight.w600, height: 1.25),
+      headlineMedium: base(22, FontWeight.w700, height: 1.2),
       headlineSmall: base(18, FontWeight.w600, height: 1.3),
-      // Section titles
       titleLarge: base(18, FontWeight.w600),
       titleMedium: base(16, FontWeight.w600),
       titleSmall: base(14, FontWeight.w600),
-      // Body
       bodyLarge: base(16, FontWeight.w400, height: 1.5),
       bodyMedium: base(14, FontWeight.w400, height: 1.5),
-      // Small / caption / helper base
-      bodySmall: base(12, FontWeight.w400, height: 1.4).copyWith(color: secondary),
-      // Labels / buttons
+      bodySmall:
+          base(12, FontWeight.w400, height: 1.4).copyWith(color: secondary),
       labelLarge: base(14, FontWeight.w600),
       labelMedium: base(12, FontWeight.w600),
       labelSmall: base(11, FontWeight.w600).copyWith(color: secondary),
