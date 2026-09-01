@@ -11,6 +11,7 @@ class AppIconButton extends StatelessWidget {
     this.tooltip,
     this.iconSize = AppSizes.iconLg,
     this.color,
+    this.backgroundColor,
     this.disabled = false,
   });
 
@@ -19,23 +20,39 @@ class AppIconButton extends StatelessWidget {
   final String? tooltip;
   final double iconSize;
   final Color? color;
+  final Color? backgroundColor;
   final bool disabled;
 
   @override
   Widget build(BuildContext context) {
+    final Widget button = IconButton(
+      onPressed: disabled ? null : onPressed,
+      icon: Icon(icon, size: iconSize),
+      color: color,
+      tooltip: tooltip,
+      padding: EdgeInsets.zero,
+      constraints: const BoxConstraints(
+        minWidth: AppSizes.iconButtonTapTarget,
+        minHeight: AppSizes.iconButtonTapTarget,
+      ),
+    );
+
+    if (backgroundColor == null) {
+      return SizedBox(
+        width: AppSizes.iconButtonTapTarget,
+        height: AppSizes.iconButtonTapTarget,
+        child: button,
+      );
+    }
+
     return SizedBox(
       width: AppSizes.iconButtonTapTarget,
       height: AppSizes.iconButtonTapTarget,
-      child: IconButton(
-        onPressed: disabled ? null : onPressed,
-        icon: Icon(icon, size: iconSize),
-        color: color,
-        tooltip: tooltip,
-        padding: EdgeInsets.zero,
-        constraints: const BoxConstraints(
-          minWidth: AppSizes.iconButtonTapTarget,
-          minHeight: AppSizes.iconButtonTapTarget,
-        ),
+      child: Material(
+        color: backgroundColor,
+        shape: const CircleBorder(),
+        clipBehavior: Clip.antiAlias,
+        child: button,
       ),
     );
   }

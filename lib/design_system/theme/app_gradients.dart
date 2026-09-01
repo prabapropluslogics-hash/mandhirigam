@@ -14,4 +14,14 @@ abstract final class AppGradients {
     ],
     stops: <double>[0.0, 0.45, 1.0],
   );
+
+  static const LinearGradient brand = LinearGradient(
+    begin: Alignment.centerLeft,
+    end: Alignment.centerRight,
+    colors: <Color>[
+      AppColors.brandAccent,
+      AppColors.brandPrimary,
+      AppColors.brandSecondary,
+    ],
+  );
 }

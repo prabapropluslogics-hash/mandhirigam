@@ -57,14 +57,35 @@ abstract final class AppTypography {
     double fontSize = 22,
     FontWeight fontWeight = FontWeight.w600,
     Color? color,
+    FontStyle fontStyle = FontStyle.normal,
+    double height = 1.2,
   }) {
     return TextStyle(
       fontFamily: serifFamily,
       fontFamilyFallback: serifFallbacks,
       fontSize: fontSize,
       fontWeight: fontWeight,
-      height: 1.2,
+      fontStyle: fontStyle,
+      height: height,
       color: color ?? AppColors.textPrimaryFor(Theme.of(context).brightness),
+    );
+  }
+
+  static TextStyle readingBody({
+    required Color color,
+    double fontSize = 17,
+    double height = 1.7,
+    String? fontFamily,
+    FontStyle fontStyle = FontStyle.normal,
+  }) {
+    return TextStyle(
+      fontFamily: fontFamily ?? serifFamily,
+      fontFamilyFallback: serifFallbacks,
+      fontSize: fontSize,
+      fontWeight: FontWeight.w400,
+      fontStyle: fontStyle,
+      height: height,
+      color: color,
     );
   }
 

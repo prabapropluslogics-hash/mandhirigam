@@ -34,59 +34,58 @@ class ContinueReadingCard extends StatelessWidget {
           child: Padding(
             padding: AppInsets.md,
             child: Row(
-                children: [
-                  BookCover(
-                    book: book,
-                    width: AppSizes.bookCoverWidthSm,
-                    height: AppSizes.bookCoverHeightSm,
-                    showTitle: true,
+              children: [
+                BookCover(
+                  book: book,
+                  width: AppSizes.bookCoverWidthSm,
+                  height: AppSizes.bookCoverHeightSm,
+                  showTitle: true,
+                ),
+                const SizedBox(width: AppSpacing.md),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        'CONTINUE READING',
+                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                              color: colors.primary,
+                              letterSpacing: 0.8,
+                            ),
+                      ),
+                      const SizedBox(height: AppSpacing.xxs),
+                      Text(
+                        book.title,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: AppTypography.bookTitle(context, fontSize: 16),
+                      ),
+                      const SizedBox(height: AppSpacing.xxs),
+                      Text(
+                        'Chapter ${book.currentChapter} of ${book.totalChapters}',
+                        style: AppTypography.helper(context),
+                      ),
+                      const SizedBox(height: AppSpacing.sm),
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(AppRadii.full),
+                        child: LinearProgressIndicator(
+                          value: book.progress,
+                          minHeight: AppSizes.progressHeight,
+                          backgroundColor: AppColors.surfaceElevatedDark,
+                          color: colors.primary,
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(width: AppSpacing.md),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          'CONTINUE READING',
-                          style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                                color: colors.primary,
-                                letterSpacing: 0.8,
-                              ),
-                        ),
-                        const SizedBox(height: AppSpacing.xxs),
-                        Text(
-                          book.title,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: AppTypography.bookTitle(context, fontSize: 16),
-                        ),
-                        const SizedBox(height: AppSpacing.xxs),
-                        Text(
-                          'Chapter ${book.currentChapter} of ${book.totalChapters}',
-                          style: AppTypography.helper(context),
-                        ),
-                        const SizedBox(height: AppSpacing.sm),
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(AppRadii.full),
-                          child: LinearProgressIndicator(
-                            value: book.progress,
-                            minHeight: AppSizes.progressHeight,
-                            backgroundColor: AppColors.surfaceElevatedDark,
-                            color: colors.primary,
-                          ),
-                        ),
-                      ],
-                    ),
+                ),
+                Icon(
+                  AppIcons.chevronRight,
+                  color: AppColors.textSecondaryFor(
+                    Theme.of(context).brightness,
                   ),
-                  Icon(
-                    AppIcons.chevronRight,
-                    color: AppColors.textSecondaryFor(
-                      Theme.of(context).brightness,
-                    ),
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
         ),

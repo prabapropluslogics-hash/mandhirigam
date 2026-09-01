@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 
 import '../features/book_details/presentation/screens/book_details_screen.dart';
+import '../features/reader/presentation/screens/reader_screen.dart';
 import '../features/shell/presentation/screens/main_shell.dart';
+import '../features/subscription/presentation/screens/payment_screen.dart';
+import '../features/subscription/presentation/screens/subscription_plans_screen.dart';
+import '../shared/data/mock_catalog.dart';
 import 'app_routes.dart';
 
 /// Centralized route table and navigation helpers.
@@ -18,6 +22,18 @@ abstract final class AppRouter {
             ? settings.arguments! as String
             : 'amber-sea';
         return _page(BookDetailsScreen(bookId: bookId), settings);
+      case AppRoutes.subscription:
+        return _page(const SubscriptionPlansScreen(), settings);
+      case AppRoutes.payment:
+        final String planId = settings.arguments is String
+            ? settings.arguments! as String
+            : MockCatalog.annualPlan.id;
+        return _page(PaymentScreen(planId: planId), settings);
+      case AppRoutes.reader:
+        final String readerBookId = settings.arguments is String
+            ? settings.arguments! as String
+            : 'quiet-hours';
+        return _page(ReaderScreen(bookId: readerBookId), settings);
       default:
         return _page(
           const Scaffold(

@@ -11,11 +11,13 @@ class AppSectionHeader extends StatelessWidget {
     required this.title,
     this.actionLabel,
     this.onAction,
+    this.serif = false,
   });
 
   final String title;
   final String? actionLabel;
   final VoidCallback? onAction;
+  final bool serif;
 
   @override
   Widget build(BuildContext context) {
@@ -24,7 +26,12 @@ class AppSectionHeader extends StatelessWidget {
       child: Row(
         children: [
           Expanded(
-            child: Text(title, style: AppTypography.sectionTitle(context)),
+            child: Text(
+              title,
+              style: serif
+                  ? AppTypography.bookTitle(context, fontSize: 18)
+                  : AppTypography.sectionTitle(context),
+            ),
           ),
           if (actionLabel != null)
             AppTextButton(

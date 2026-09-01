@@ -44,4 +44,7 @@ class Book {
   }
 
   int get totalChapters => chapters.length;
+
+  String get chapterProgressLabel =>
+      'Chapter $currentChapter of $totalChapters';
 }

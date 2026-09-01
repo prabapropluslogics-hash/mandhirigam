@@ -24,4 +24,21 @@ abstract final class AppIcons {
   static const IconData favorite = Icons.favorite_border_rounded;
   static const IconData favoriteFilled = Icons.favorite_rounded;
   static const IconData share = Icons.ios_share_rounded;
+  static const IconData play = Icons.play_arrow_rounded;
+  static const IconData bookmark = Icons.bookmark_border_rounded;
+  static const IconData bookmarkFilled = Icons.bookmark_rounded;
+  static const IconData edit = Icons.edit_outlined;
+  static const IconData note = Icons.edit_rounded;
+  static const IconData flame = Icons.local_fire_department_rounded;
+  static const IconData creditCard = Icons.credit_card_rounded;
+  static const IconData download = Icons.download_outlined;
+  static const IconData timer = Icons.timer_outlined;
+  static const IconData logout = Icons.logout_rounded;
+  static const IconData checkFilled = Icons.check_circle_rounded;
+  static const IconData checkPlain = Icons.check_rounded;
+  static const IconData sun = Icons.wb_sunny_outlined;
+  static const IconData sunFilled = Icons.wb_sunny_rounded;
+  static const IconData chevronLeft = Icons.chevron_left_rounded;
+  static const IconData apple = Icons.apple;
+  static const IconData chapter = Icons.menu_book_outlined;
 }

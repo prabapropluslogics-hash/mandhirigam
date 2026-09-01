@@ -12,10 +12,17 @@ class BottomActionBar extends StatelessWidget {
     super.key,
     this.onFreeSample,
     this.onUnlockPremium,
-  });
+  }) : onStartReading = null;
+
+  const BottomActionBar.startReading({
+    super.key,
+    required this.onStartReading,
+  })  : onFreeSample = null,
+        onUnlockPremium = null;
 
   final VoidCallback? onFreeSample;
   final VoidCallback? onUnlockPremium;
+  final VoidCallback? onStartReading;
 
   @override
   Widget build(BuildContext context) {
@@ -25,28 +32,37 @@ class BottomActionBar extends StatelessWidget {
         top: false,
         child: Padding(
           padding: AppInsets.page,
-          child: Row(
-            children: [
-              Expanded(
-                child: AppOutlinedButton(
-                  label: 'Free sample',
+          child: onStartReading != null
+              ? AppButton(
+                  label: 'Start reading',
                   size: AppButtonSize.large,
-                  isExpanded: true,
-                  onPressed: onFreeSample,
+                  leadingIcon: AppIcons.play,
+                  backgroundColor: AppColors.neutral50,
+                  foregroundColor: AppColors.textOnBrand,
+                  onPressed: onStartReading,
+                )
+              : Row(
+                  children: [
+                    Expanded(
+                      child: AppOutlinedButton(
+                        label: 'Free sample',
+                        size: AppButtonSize.large,
+                        isExpanded: true,
+                        onPressed: onFreeSample,
+                      ),
+                    ),
+                    const SizedBox(width: AppSpacing.md),
+                    Expanded(
+                      flex: 2,
+                      child: AppButton(
+                        label: 'Unlock premium',
+                        size: AppButtonSize.large,
+                        leadingIcon: AppIcons.lock,
+                        onPressed: onUnlockPremium,
+                      ),
+                    ),
+                  ],
                 ),
-              ),
-              const SizedBox(width: AppSpacing.md),
-              Expanded(
-                flex: 2,
-                child: AppButton(
-                  label: 'Unlock premium',
-                  size: AppButtonSize.large,
-                  leadingIcon: AppIcons.lock,
-                  onPressed: onUnlockPremium,
-                ),
-              ),
-            ],
-          ),
         ),
       ),
     );

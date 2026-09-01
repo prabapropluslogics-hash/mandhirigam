@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../design_system/components/buttons/app_icon_button.dart';
+import '../../../../design_system/components/feedback/access_badge.dart';
 import '../../../../design_system/components/feedback/premium_badge.dart';
 import '../../../../design_system/components/feedback/rating_view.dart';
 import '../../../../design_system/components/layout/app_gap.dart';
@@ -11,6 +12,7 @@ import '../../../../design_system/theme/app_sizes.dart';
 import '../../../../design_system/theme/app_spacing.dart';
 import '../../../../design_system/theme/app_typography.dart';
 import '../../../../routing/app_router.dart';
+import '../../../../routing/app_routes.dart';
 import '../../../../shared/data/mock_catalog.dart';
 import '../../../../shared/models/book.dart';
 import '../../../../shared/widgets/book_cover.dart';
@@ -101,10 +103,11 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          if (book.isPremium) ...[
-                            const PremiumBadge(),
-                            const AppGap.md(axis: AppGapAxis.horizontal),
-                          ],
+                          if (book.isPremium)
+                            const PremiumBadge()
+                          else
+                            const AccessBadge.free(),
+                          const AppGap.md(axis: AppGapAxis.horizontal),
                           RatingView(
                             rating: book.rating,
                             reviewCountLabel: book.reviewCountLabel,
@@ -139,8 +142,26 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
           ),
           if (book.isPremium)
             BottomActionBar(
-              onFreeSample: () {},
-              onUnlockPremium: () {},
+              onFreeSample: () {
+                AppRouter.pushNamed(
+                  context,
+                  AppRoutes.reader,
+                  arguments: book.id,
+                );
+              },
+              onUnlockPremium: () {
+                AppRouter.pushNamed(context, AppRoutes.subscription);
+              },
+            )
+          else
+            BottomActionBar.startReading(
+              onStartReading: () {
+                AppRouter.pushNamed(
+                  context,
+                  AppRoutes.reader,
+                  arguments: book.id,
+                );
+              },
             ),
         ],
       ),

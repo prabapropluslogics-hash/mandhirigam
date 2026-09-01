@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../theme/app_gradients.dart';
+import '../../theme/app_radii.dart';
 import 'app_button_shared.dart';
 
 /// Primary (filled) button — uses [ElevatedButton] theme tokens.
@@ -15,6 +17,7 @@ class AppButton extends StatelessWidget {
     this.trailingIcon,
     this.backgroundColor,
     this.foregroundColor,
+    this.gradient = false,
   });
 
   final String label;
@@ -26,6 +29,7 @@ class AppButton extends StatelessWidget {
   final IconData? trailingIcon;
   final Color? backgroundColor;
   final Color? foregroundColor;
+  final bool gradient;
 
   @override
   Widget build(BuildContext context) {
@@ -33,15 +37,21 @@ class AppButton extends StatelessWidget {
     final VoidCallback? effectiveOnPressed = isLoading ? null : onPressed;
     final Color loaderColor = foregroundColor ?? colors.onPrimary;
 
-    final ButtonStyle? overrideStyle =
-        (backgroundColor != null || foregroundColor != null)
-            ? ElevatedButton.styleFrom(
-                backgroundColor: backgroundColor,
-                foregroundColor: foregroundColor,
-              )
-            : null;
+    ButtonStyle? overrideStyle;
+    if (gradient) {
+      overrideStyle = ElevatedButton.styleFrom(
+        backgroundColor: Colors.transparent,
+        shadowColor: Colors.transparent,
+        foregroundColor: foregroundColor ?? colors.onPrimary,
+      );
+    } else if (backgroundColor != null || foregroundColor != null) {
+      overrideStyle = ElevatedButton.styleFrom(
+        backgroundColor: backgroundColor,
+        foregroundColor: foregroundColor,
+      );
+    }
 
-    return SizedBox(
+    final Widget button = SizedBox(
       height: appButtonHeight(size),
       width: isExpanded ? double.infinity : null,
       child: ElevatedButton(
@@ -55,6 +65,16 @@ class AppButton extends StatelessWidget {
           leadingIcon: leadingIcon,
           trailingIcon: trailingIcon,
         ),
+      ),
+    );
+
+    if (!gradient) return button;
+
+    return ClipRRect(
+      borderRadius: AppRadii.buttonBorder,
+      child: DecoratedBox(
+        decoration: const BoxDecoration(gradient: AppGradients.brand),
+        child: button,
       ),
     );
   }

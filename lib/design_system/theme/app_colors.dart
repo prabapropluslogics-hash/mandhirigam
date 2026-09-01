@@ -32,6 +32,9 @@ abstract final class AppColors {
   // ---------------------------------------------------------------------------
   static const Color success = Color(0xFF2F7D4A);
   static const Color onSuccess = neutral0;
+  static const Color successContainer = Color(0xFF1E3326);
+  static const Color onSuccessContainer = Color(0xFF9ECBA8);
+  static const Color dangerSoft = Color(0xFFC47A7A);
   static const Color warning = Color(0xFFB54708);
   static const Color onWarning = neutral0;
   static const Color error = Color(0xFFB42318);
@@ -91,6 +94,16 @@ abstract final class AppColors {
 
   static const Color overlay = Color(0x99000000);
   static const Color shadow = Color(0xFF000000);
+
+  // ---------------------------------------------------------------------------
+  // Reading — page themes and highlight swatches from the reader reference
+  // ---------------------------------------------------------------------------
+  static const Color readingSepia = Color(0xFFE8D5B5);
+  static const Color readingSepiaInk = Color(0xFF3B2F1E);
+  static const Color highlightYellow = Color(0xFFE4C878);
+  static const Color highlightGreen = Color(0xFF88A87A);
+  static const Color highlightBlue = Color(0xFF7A9BB8);
+  static const Color highlightInk = Color(0xFF2C2C2C);
 
   // ---------------------------------------------------------------------------
   // Helpers
