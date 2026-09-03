@@ -96,7 +96,7 @@ abstract final class AppColors {
   // Helpers
   // ---------------------------------------------------------------------------
   static Color shadowWithOpacity(double opacity) =>
-      shadow.withValues(alpha: opacity);
+      shadow.withOpacity(opacity);
 
   static Color textPrimaryFor(Brightness brightness) =>
       brightness == Brightness.light ? textPrimary : textPrimaryDark;

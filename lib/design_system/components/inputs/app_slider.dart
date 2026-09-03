@@ -23,14 +23,16 @@ class AppSlider extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Slider(
-      value: value,
-      min: min,
-      max: max,
-      divisions: divisions,
-      label: label,
-      onChanged: onChanged,
+    return Padding(
       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs),
+      child: Slider(
+        value: value,
+        min: min,
+        max: max,
+        divisions: divisions,
+        label: label,
+        onChanged: onChanged,
+      ),
     );
   }
 }

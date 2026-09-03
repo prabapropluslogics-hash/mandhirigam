@@ -86,7 +86,7 @@ class _SearchScreenState extends State<SearchScreen> {
               scrollDirection: Axis.horizontal,
               padding: AppInsets.pageHorizontal,
               itemCount: MockCatalog.recentSearches.length,
-              separatorBuilder: (_, _) =>
+              separatorBuilder: (context, index) =>
                   const AppGap.sm(axis: AppGapAxis.horizontal),
               itemBuilder: (BuildContext context, int index) {
                 final String query = MockCatalog.recentSearches[index];
@@ -107,7 +107,7 @@ class _SearchScreenState extends State<SearchScreen> {
               scrollDirection: Axis.horizontal,
               padding: AppInsets.pageHorizontal,
               itemCount: MockCatalog.filterShortcuts.length + 1,
-              separatorBuilder: (_, _) =>
+              separatorBuilder: (context, index) =>
                   const AppGap.sm(axis: AppGapAxis.horizontal),
               itemBuilder: (BuildContext context, int index) {
                 if (index == 0) {
