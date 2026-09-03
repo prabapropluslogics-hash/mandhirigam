@@ -14,6 +14,7 @@ class AppCard extends StatelessWidget {
     this.onTap,
     this.elevated = false,
     this.clipBehavior = Clip.antiAlias,
+    this.borderRadius,
   });
 
   final Widget child;
@@ -22,10 +23,12 @@ class AppCard extends StatelessWidget {
   final VoidCallback? onTap;
   final bool elevated;
   final Clip clipBehavior;
+  final BorderRadius? borderRadius;
 
   @override
   Widget build(BuildContext context) {
     final EdgeInsetsGeometry resolvedPadding = padding ?? AppInsets.lg;
+    final BorderRadius radius = borderRadius ?? AppRadii.cardBorder;
 
     final Widget paddedChild = Padding(
       padding: resolvedPadding,
@@ -36,13 +39,14 @@ class AppCard extends StatelessWidget {
         ? paddedChild
         : InkWell(
             onTap: onTap,
-            borderRadius: AppRadii.cardBorder,
+            borderRadius: radius,
             child: paddedChild,
           );
 
     final Widget card = Card(
       margin: elevated ? EdgeInsets.zero : (margin ?? EdgeInsets.zero),
       clipBehavior: clipBehavior,
+      shape: RoundedRectangleBorder(borderRadius: radius),
       child: cardChild,
     );
 
@@ -51,7 +55,7 @@ class AppCard extends StatelessWidget {
     return Container(
       margin: margin ?? EdgeInsets.zero,
       decoration: BoxDecoration(
-        borderRadius: AppRadii.cardBorder,
+        borderRadius: radius,
         boxShadow: AppShadows.card,
       ),
       child: card,

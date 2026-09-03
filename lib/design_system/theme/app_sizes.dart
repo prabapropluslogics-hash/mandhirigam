@@ -18,10 +18,11 @@ abstract final class AppSizes {
   static const double chipHeight = 36;
   static const double avatar = 36;
   static const double avatarLg = 64;
+  static const double avatarXl = 72;
   static const double badgeDot = 8;
   static const double progressHeight = 4;
-  static const double chartBarWidth = 14;
-  static const double chartBarMaxHeight = 88;
+  static const double chartBarWidth = 16;
+  static const double chartBarMaxHeight = 96;
   static const double dropCapSize = 52;
   static const double highlightSwatch = 18;
   static const double downloadedBadge = 20;
@@ -30,7 +31,7 @@ abstract final class AppSizes {
   static const double bookCoverHeightDownloaded = 114;
 
   static const double appBarHeight = 56;
-  static const double bottomNavHeight = 64;
+  static const double bottomNavHeight = 80;
 
   static const double bookCoverWidthSm = 48;
   static const double bookCoverHeightSm = 68;

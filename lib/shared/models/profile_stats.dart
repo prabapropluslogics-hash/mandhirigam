@@ -1,5 +1,6 @@
 class ProfileStats {
   const ProfileStats({
+    required this.displayName,
     required this.booksRead,
     required this.dayStreak,
     required this.timeReading,
@@ -9,6 +10,7 @@ class ProfileStats {
     required this.memberLabel,
   });
 
+  final String displayName;
   final String booksRead;
   final String dayStreak;
   final String timeReading;

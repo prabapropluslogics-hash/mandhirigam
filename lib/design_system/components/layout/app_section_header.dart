@@ -29,7 +29,7 @@ class AppSectionHeader extends StatelessWidget {
             child: Text(
               title,
               style: serif
-                  ? AppTypography.bookTitle(context, fontSize: 18)
+                  ? AppTypography.bookTitle(context, fontSize: 22)
                   : AppTypography.sectionTitle(context),
             ),
           ),

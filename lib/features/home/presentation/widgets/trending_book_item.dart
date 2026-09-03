@@ -47,7 +47,8 @@ class TrendingBooksRow extends StatelessWidget {
         scrollDirection: Axis.horizontal,
         padding: AppInsets.pageHorizontal,
         itemCount: books.length,
-        separatorBuilder: (_, _) => const SizedBox(width: AppSpacing.md),
+        separatorBuilder: (BuildContext context, int index) =>
+            const SizedBox(width: AppSpacing.md),
         itemBuilder: (BuildContext context, int index) {
           final Book book = books[index];
           return TrendingBookItem(

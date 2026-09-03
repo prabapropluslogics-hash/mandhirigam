@@ -59,7 +59,9 @@ class BookCover extends StatelessWidget {
         : Image.asset(
             book.coverAsset!,
             fit: BoxFit.cover,
-            errorBuilder: (_, _, _) => painted,
+            errorBuilder:
+                (BuildContext context, Object error, StackTrace? stackTrace) =>
+                    painted,
           );
 
     return SizedBox(

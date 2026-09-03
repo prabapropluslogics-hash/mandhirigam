@@ -62,6 +62,9 @@ abstract final class AppColors {
   static const Color featuredEnd = Color(0xFF2B1A10);
 
   static const Color avatarFallback = Color(0xFF6E5A9E);
+  static const Color avatarStart = Color(0xFF8B7BB8);
+  static const Color avatarEnd = Color(0xFF2A2248);
+  static const Color chartBarInactive = Color(0xFF4A4A52);
 
   // ---------------------------------------------------------------------------
   // Semantic — text
@@ -109,7 +112,7 @@ abstract final class AppColors {
   // Helpers
   // ---------------------------------------------------------------------------
   static Color shadowWithOpacity(double opacity) =>
-      shadow.withValues(alpha: opacity);
+      shadow.withOpacity(opacity);
 
   static Color textPrimaryFor(Brightness brightness) =>
       brightness == Brightness.light ? textPrimary : textPrimaryDark;

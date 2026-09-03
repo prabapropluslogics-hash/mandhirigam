@@ -24,7 +24,7 @@ class ReadingStreakCard extends StatelessWidget {
           children: [
             DecoratedBox(
               decoration: BoxDecoration(
-                color: AppColors.featuredMid.withValues(alpha: 0.45),
+                color: AppColors.featuredMid.withOpacity(0.45),
                 borderRadius: BorderRadius.circular(AppRadii.sm),
               ),
               child: const Padding(

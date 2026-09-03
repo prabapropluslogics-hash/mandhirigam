@@ -187,7 +187,7 @@ class _ReaderCustomizeSheetState extends State<ReaderCustomizeSheet> {
                     child: ListView.separated(
                       scrollDirection: Axis.horizontal,
                       itemCount: MockCatalog.typefaces.length,
-                      separatorBuilder: (_, _) =>
+                      separatorBuilder: (BuildContext context, int index) =>
                           const AppGap.sm(axis: AppGapAxis.horizontal),
                       itemBuilder: (BuildContext context, int index) {
                         final TypefaceOption option =

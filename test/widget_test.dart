@@ -59,6 +59,46 @@ void main() {
     expect(find.text('Books read'), findsOneWidget);
     expect(find.text('This week'), findsOneWidget);
     expect(find.text('Sign out'), findsOneWidget);
+    expect(find.text('148'), findsOneWidget);
+    expect(find.text('Account & payment'), findsOneWidget);
+  });
+
+  testWidgets('profile account payment and sign out flow', (tester) async {
+    await pumpApp(tester);
+
+    await tester.tap(find.byTooltip('Profile'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Account & payment'));
+    await tester.pumpAndSettle();
+    expect(find.text('Unlock every story'), findsOneWidget);
+
+    await tester.tap(find.byTooltip('Close'));
+    await tester.pumpAndSettle();
+    expect(find.text('Premium member'), findsOneWidget);
+    expect(find.text('Account & payment'), findsOneWidget);
+
+    await tester.dragUntilVisible(
+      find.text('Sign out'),
+      find.byKey(const Key('profile-scroll')),
+      const Offset(0, -120),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Sign out'));
+    await tester.pumpAndSettle();
+    expect(find.text('You will be signed out of this device.'), findsOneWidget);
+
+    await tester.tap(find.text('Cancel'));
+    await tester.pumpAndSettle();
+    expect(find.text('You will be signed out of this device.'), findsNothing);
+    expect(find.text('Sign out'), findsOneWidget);
+
+    await tester.tap(find.text('Sign out'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Sign out').last);
+    await tester.pumpAndSettle();
+    expect(find.text('Signed out'), findsOneWidget);
+    expect(find.text('Account & payment'), findsNothing);
   });
 
   testWidgets('unlock premium opens plans and payment', (tester) async {

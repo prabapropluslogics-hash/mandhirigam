@@ -25,9 +25,11 @@ abstract final class AppTheme {
       onTertiary: AppColors.textOnBrand,
       error: AppColors.error,
       onError: AppColors.onError,
+      background: AppColors.backgroundFor(brightness),
+      onBackground: AppColors.textPrimaryFor(brightness),
       surface: AppColors.surfaceFor(brightness),
       onSurface: AppColors.textPrimaryFor(brightness),
-      surfaceContainerHighest: AppColors.surfaceMutedFor(brightness),
+      surfaceVariant: AppColors.surfaceMutedFor(brightness),
       outline: AppColors.borderFor(brightness),
       outlineVariant: AppColors.dividerFor(brightness),
     );
@@ -146,20 +148,19 @@ abstract final class AppTheme {
           color: AppColors.textSecondaryFor(brightness),
         ),
       ),
-      cardTheme: CardThemeData(
+      cardTheme: CardTheme(
         elevation: 0,
         color: AppColors.surfaceMutedFor(brightness),
         shape: RoundedRectangleBorder(borderRadius: AppRadii.cardBorder),
         margin: EdgeInsets.zero,
         clipBehavior: Clip.antiAlias,
       ),
-      dialogTheme: DialogThemeData(
+      dialogTheme: DialogTheme(
         backgroundColor: colorScheme.surface,
         elevation: 0,
         shape: RoundedRectangleBorder(borderRadius: AppRadii.dialogBorder),
         titleTextStyle: textTheme.titleLarge,
         contentTextStyle: textTheme.bodyMedium,
-        insetPadding: AppInsets.lg,
       ),
       bottomSheetTheme: BottomSheetThemeData(
         backgroundColor: AppColors.surfaceFor(brightness),
@@ -177,7 +178,7 @@ abstract final class AppTheme {
         activeTrackColor: colorScheme.primary,
         inactiveTrackColor: AppColors.surfaceElevatedDark,
         thumbColor: colorScheme.primary,
-        overlayColor: colorScheme.primary.withValues(alpha: 0.16),
+        overlayColor: colorScheme.primary.withOpacity(0.16),
         trackHeight: AppSizes.progressHeight,
       ),
       dividerTheme: DividerThemeData(

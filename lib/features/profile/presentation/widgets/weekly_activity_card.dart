@@ -17,23 +17,27 @@ class WeeklyActivityCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: AppInsets.pageHorizontal,
-      child: AppCard(
-        child: SizedBox(
-          height: AppSizes.chartBarMaxHeight + AppSpacing.xxl,
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              for (int i = 0; i < activity.values.length; i++) ...[
-                if (i > 0) const SizedBox(width: AppSpacing.sm),
-                Expanded(
-                  child: _DayBar(
-                    value: activity.values[i],
-                    label: activity.dayLabels[i],
-                    highlighted: i == activity.highlightedIndex,
+      child: Semantics(
+        label: 'Weekly reading activity',
+        child: AppCard(
+          borderRadius: BorderRadius.circular(AppRadii.lg),
+          child: SizedBox(
+            height: AppSizes.chartBarMaxHeight + AppSpacing.xxl,
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                for (int i = 0; i < activity.values.length; i++) ...[
+                  if (i > 0) const SizedBox(width: AppSpacing.sm),
+                  Expanded(
+                    child: _DayBar(
+                      value: activity.values[i],
+                      label: activity.dayLabels[i],
+                      highlighted: i == activity.highlightedIndex,
+                    ),
                   ),
-                ),
+                ],
               ],
-            ],
+            ),
           ),
         ),
       ),
@@ -55,7 +59,7 @@ class _DayBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final Color barColor =
-        highlighted ? AppColors.brandPrimary : AppColors.neutral600;
+        highlighted ? AppColors.brandPrimary : AppColors.chartBarInactive;
     final Color labelColor =
         highlighted ? AppColors.brandPrimary : AppColors.textSecondaryDark;
 

@@ -17,7 +17,7 @@ class AppBottomNavDestination {
   final String label;
 }
 
-/// Icon-only bottom navigation with a gold active indicator.
+/// Icon + label bottom navigation with a gold active indicator.
 class AppBottomNavigation extends StatelessWidget {
   const AppBottomNavigation({
     super.key,
@@ -111,11 +111,29 @@ class _NavItem extends StatelessWidget {
               color: color,
             ),
             const SizedBox(height: AppSpacing.xs),
-            AnimatedContainer(
-              duration: const Duration(milliseconds: 180),
-              width: selected ? AppSizes.badgeDot : 0,
-              height: selected ? AppSizes.badgeDot : 0,
-              decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+            Text(
+              destination.label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                    color: color,
+                    fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
+                  ),
+            ),
+            const SizedBox(height: AppSpacing.xs),
+            SizedBox(
+              height: AppSizes.badgeDot,
+              child: Center(
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 180),
+                  width: selected ? AppSizes.badgeDot : 0,
+                  height: selected ? AppSizes.badgeDot : 0,
+                  decoration: BoxDecoration(
+                    color: color,
+                    shape: BoxShape.circle,
+                  ),
+                ),
+              ),
             ),
           ],
         ),

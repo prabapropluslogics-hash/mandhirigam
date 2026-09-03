@@ -31,8 +31,11 @@ abstract final class AppIcons {
   static const IconData note = Icons.edit_rounded;
   static const IconData flame = Icons.local_fire_department_rounded;
   static const IconData creditCard = Icons.credit_card_rounded;
+  static const IconData creditCardOutline = Icons.credit_card_outlined;
   static const IconData download = Icons.download_outlined;
+  static const IconData storage = Icons.file_upload_outlined;
   static const IconData timer = Icons.timer_outlined;
+  static const IconData clock = Icons.schedule_outlined;
   static const IconData logout = Icons.logout_rounded;
   static const IconData checkFilled = Icons.check_circle_rounded;
   static const IconData checkPlain = Icons.check_rounded;

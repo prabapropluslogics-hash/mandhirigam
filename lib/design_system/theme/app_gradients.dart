@@ -24,4 +24,13 @@ abstract final class AppGradients {
       AppColors.brandSecondary,
     ],
   );
+
+  static const LinearGradient avatar = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: <Color>[
+      AppColors.avatarStart,
+      AppColors.avatarEnd,
+    ],
+  );
 }

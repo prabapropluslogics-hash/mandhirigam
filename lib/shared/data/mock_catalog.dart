@@ -276,6 +276,7 @@ abstract final class MockCatalog {
   );
 
   static const ProfileStats profileStats = ProfileStats(
+    displayName: currentUserName,
     booksRead: '148',
     dayStreak: '7',
     timeReading: '312h',

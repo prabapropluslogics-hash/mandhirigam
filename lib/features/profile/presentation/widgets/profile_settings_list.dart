@@ -5,6 +5,7 @@ import '../../../../design_system/components/layout/app_gap.dart';
 import '../../../../design_system/components/navigation/app_settings_tile.dart';
 import '../../../../design_system/icons/app_icons.dart';
 import '../../../../design_system/theme/app_colors.dart';
+import '../../../../design_system/theme/app_sizes.dart';
 import '../../../../design_system/theme/app_spacing.dart';
 
 class ProfileSettingsList extends StatelessWidget {
@@ -30,29 +31,29 @@ class ProfileSettingsList extends StatelessWidget {
       child: Column(
         children: [
           AppSettingsTile(
-            icon: AppIcons.creditCard,
+            icon: AppIcons.creditCardOutline,
             label: 'Account & payment',
             onTap: onAccountPayment,
           ),
-          const AppDivider(),
+          const AppDivider(space: AppSizes.dividerThickness),
           AppSettingsTile(
             icon: AppIcons.notifications,
             label: 'Notifications',
             onTap: onNotifications,
           ),
-          const AppDivider(),
+          const AppDivider(space: AppSizes.dividerThickness),
           AppSettingsTile(
-            icon: AppIcons.download,
+            icon: AppIcons.storage,
             label: 'Downloads & storage',
             onTap: onDownloads,
           ),
-          const AppDivider(),
+          const AppDivider(space: AppSizes.dividerThickness),
           AppSettingsTile(
-            icon: AppIcons.timer,
+            icon: AppIcons.clock,
             label: 'Reading goals',
             onTap: onReadingGoals,
           ),
-          const AppDivider(),
+          const AppDivider(space: AppSizes.dividerThickness),
           AppSettingsTile(
             icon: AppIcons.logout,
             label: 'Sign out',

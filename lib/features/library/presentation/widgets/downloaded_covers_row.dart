@@ -26,7 +26,7 @@ class DownloadedCoversRow extends StatelessWidget {
         scrollDirection: Axis.horizontal,
         padding: AppInsets.pageHorizontal,
         itemCount: books.length,
-        separatorBuilder: (_, _) =>
+        separatorBuilder: (BuildContext context, int index) =>
             const AppGap.md(axis: AppGapAxis.horizontal),
         itemBuilder: (BuildContext context, int index) {
           final Book book = books[index];

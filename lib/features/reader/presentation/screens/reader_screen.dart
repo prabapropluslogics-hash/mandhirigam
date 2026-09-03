@@ -53,13 +53,13 @@ class _ReaderScreenState extends State<ReaderScreen> {
 
   Color get _mutedColor => switch (_prefs.mode) {
         ReadingMode.light => AppColors.textSecondary,
-        ReadingMode.sepia => AppColors.readingSepiaInk.withValues(alpha: 0.7),
+        ReadingMode.sepia => AppColors.readingSepiaInk.withOpacity(0.7),
         ReadingMode.dark => AppColors.textSecondaryDark,
       };
 
   Color get _trackColor => switch (_prefs.mode) {
         ReadingMode.dark => AppColors.surfaceMutedDark,
-        ReadingMode.sepia => AppColors.brandSecondary.withValues(alpha: 0.2),
+        ReadingMode.sepia => AppColors.brandSecondary.withOpacity(0.2),
         ReadingMode.light => AppColors.neutral100,
       };
 
@@ -223,7 +223,7 @@ class _ReaderScreenState extends State<ReaderScreen> {
             if (dim > 0)
               IgnorePointer(
                 child: ColoredBox(
-                  color: AppColors.shadow.withValues(alpha: dim),
+                  color: AppColors.shadow.withOpacity(dim),
                   child: const SizedBox.expand(),
                 ),
               ),
