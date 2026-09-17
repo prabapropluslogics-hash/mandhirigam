@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 
-import '../../../../design_system/components/feedback/app_empty_state.dart';
-import '../../../../design_system/components/layout/app_scaffold.dart';
+import '../../../../features/home/presentation/screens/home_screen.dart';
+import '../../../../features/library/presentation/screens/library_screen.dart';
+import '../../../../features/profile/presentation/screens/profile_screen.dart';
+import '../../../../features/search/presentation/screens/search_screen.dart';
 import '../../../../design_system/components/navigation/app_bottom_navigation.dart';
-import '../../../home/presentation/screens/home_screen.dart';
-import '../../../search/presentation/screens/search_screen.dart';
 
 class MainShell extends StatefulWidget {
   const MainShell({super.key});
@@ -26,35 +26,14 @@ class _MainShellState extends State<MainShell> {
         children: [
           HomeScreen(onOpenSearch: _openSearch),
           SearchScreen(onCancel: () => setState(() => _index = 0)),
-          const _NavPlaceholder(
-            title: 'Library',
-            message: 'Your shelves will appear here.',
-          ),
-          const _NavPlaceholder(
-            title: 'Profile',
-            message: 'Profile arrives with a later screen.',
-          ),
+          const LibraryScreen(),
+          const ProfileScreen(),
         ],
       ),
       bottomNavigationBar: AppBottomNavigation(
         currentIndex: _index,
         onChanged: (int index) => setState(() => _index = index),
       ),
-    );
-  }
-}
-
-class _NavPlaceholder extends StatelessWidget {
-  const _NavPlaceholder({required this.title, required this.message});
-
-  final String title;
-  final String message;
-
-  @override
-  Widget build(BuildContext context) {
-    return AppScaffold(
-      safeAreaBottom: false,
-      body: AppEmptyState(title: title, message: message),
     );
   }
 }

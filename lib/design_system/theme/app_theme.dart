@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../core/app_container.dart';
 import 'app_colors.dart';
 import 'app_radii.dart';
 import 'app_sizes.dart';
@@ -8,19 +9,28 @@ import 'app_typography.dart';
 
 /// Builds light/dark [ThemeData] from design tokens.
 abstract final class AppTheme {
-  static ThemeData light() => _build(Brightness.light);
+  static ThemeData light({BrandingColors? branding}) =>
+      _build(Brightness.light, branding);
 
-  static ThemeData dark() => _build(Brightness.dark);
+  static ThemeData dark({BrandingColors? branding}) =>
+      _build(Brightness.dark, branding);
 
-  static ThemeData _build(Brightness brightness) {
+  static ThemeData _build(Brightness brightness, BrandingColors? branding) {
     final bool isLight = brightness == Brightness.light;
+    final Color primary = branding?.primary ?? AppColors.brandPrimary;
+    final Color secondary = branding?.secondary ?? AppColors.brandSecondary;
+    final Color button = branding?.button ?? AppColors.brandPrimary;
+    final Color onPrimary = branding?.onPrimary ?? AppColors.textOnBrand;
+    final Color onButton = branding?.onButton ?? AppColors.textOnBrand;
 
     final ColorScheme colorScheme = ColorScheme(
       brightness: brightness,
-      primary: AppColors.brandPrimary,
-      onPrimary: AppColors.textOnBrand,
-      secondary: AppColors.brandSecondary,
-      onSecondary: AppColors.textOnBrand,
+      primary: primary,
+      onPrimary: onPrimary,
+      secondary: secondary,
+      onSecondary: secondary.computeLuminance() > 0.55
+          ? AppColors.textOnBrand
+          : AppColors.neutral0,
       tertiary: AppColors.brandAccent,
       onTertiary: AppColors.textOnBrand,
       error: AppColors.error,
@@ -63,8 +73,8 @@ abstract final class AppTheme {
         style: ElevatedButton.styleFrom(
           minimumSize: const Size.fromHeight(AppSizes.buttonHeightMd),
           elevation: 0,
-          backgroundColor: colorScheme.primary,
-          foregroundColor: colorScheme.onPrimary,
+          backgroundColor: button,
+          foregroundColor: onButton,
           disabledBackgroundColor: disabledBackground,
           disabledForegroundColor: disabledForeground,
           shape: RoundedRectangleBorder(borderRadius: AppRadii.buttonBorder),

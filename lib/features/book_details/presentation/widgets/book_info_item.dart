@@ -26,21 +26,21 @@ class BookInfoItem extends StatelessWidget {
 class BookInfoRow extends StatelessWidget {
   const BookInfoRow({
     super.key,
-    required this.pages,
-    required this.readTime,
+    required this.chapters,
+    required this.access,
     required this.language,
   });
 
-  final String pages;
-  final String readTime;
+  final String chapters;
+  final String access;
   final String language;
 
   @override
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Expanded(child: BookInfoItem(value: pages, label: 'Pages')),
-        Expanded(child: BookInfoItem(value: readTime, label: 'Read time')),
+        Expanded(child: BookInfoItem(value: chapters, label: 'Chapters')),
+        Expanded(child: BookInfoItem(value: access, label: 'Access')),
         Expanded(child: BookInfoItem(value: language, label: 'Language')),
       ],
     );
