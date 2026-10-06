@@ -12,6 +12,7 @@ class AppButton extends StatelessWidget {
     this.isExpanded = true,
     this.isLoading = false,
     this.leadingIcon,
+    this.leading,
     this.trailingIcon,
     this.backgroundColor,
     this.foregroundColor,
@@ -23,6 +24,7 @@ class AppButton extends StatelessWidget {
   final bool isExpanded;
   final bool isLoading;
   final IconData? leadingIcon;
+  final Widget? leading;
   final IconData? trailingIcon;
   final Color? backgroundColor;
   final Color? foregroundColor;
@@ -33,11 +35,15 @@ class AppButton extends StatelessWidget {
     final VoidCallback? effectiveOnPressed = isLoading ? null : onPressed;
     final Color loaderColor = foregroundColor ?? colors.onPrimary;
 
+    // Custom colours stay in place while loading so the loader keeps its
+    // contrast instead of switching to the generic disabled surface.
     final ButtonStyle? overrideStyle =
         (backgroundColor != null || foregroundColor != null)
             ? ElevatedButton.styleFrom(
                 backgroundColor: backgroundColor,
                 foregroundColor: foregroundColor,
+                disabledBackgroundColor: isLoading ? backgroundColor : null,
+                disabledForegroundColor: isLoading ? foregroundColor : null,
               )
             : null;
 
@@ -53,6 +59,7 @@ class AppButton extends StatelessWidget {
           isExpanded: isExpanded,
           loaderColor: loaderColor,
           leadingIcon: leadingIcon,
+          leading: leading,
           trailingIcon: trailingIcon,
         ),
       ),

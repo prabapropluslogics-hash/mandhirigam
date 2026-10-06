@@ -17,7 +17,8 @@ class AppBottomNavDestination {
   final String label;
 }
 
-/// Icon-only bottom navigation with a gold active indicator.
+/// Icon-only bottom navigation: muted inactive icons, a gold active icon with
+/// a small glowing bar, on a deep surface separated by a gold hairline.
 class AppBottomNavigation extends StatelessWidget {
   const AppBottomNavigation({
     super.key,
@@ -41,7 +42,7 @@ class AppBottomNavigation extends StatelessWidget {
       ),
       AppBottomNavDestination(
         icon: AppIcons.person,
-        selectedIcon: AppIcons.person,
+        selectedIcon: AppIcons.personFilled,
         label: 'Profile',
       ),
     ],
@@ -53,11 +54,25 @@ class AppBottomNavigation extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final ColorScheme colors = Theme.of(context).colorScheme;
-    final Brightness brightness = Theme.of(context).brightness;
+    final bool dark = Theme.of(context).brightness == Brightness.dark;
 
-    return ColoredBox(
-      color: AppColors.backgroundFor(brightness),
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: dark ? AppColors.splashBase : AppColors.background,
+        border: Border(
+          top: BorderSide(
+            color: AppColors.brandPrimary.withOpacity(0.14),
+            width: 0.6,
+          ),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.shadowWithOpacity(0.45),
+            blurRadius: 18,
+            offset: const Offset(0, -4),
+          ),
+        ],
+      ),
       child: SafeArea(
         top: false,
         child: SizedBox(
@@ -69,9 +84,6 @@ class AppBottomNavigation extends StatelessWidget {
                   child: _NavItem(
                     destination: destinations[i],
                     selected: i == currentIndex,
-                    color: i == currentIndex
-                        ? colors.primary
-                        : AppColors.textSecondaryFor(brightness),
                     onTap: () => onChanged(i),
                   ),
                 ),
@@ -87,37 +99,61 @@ class _NavItem extends StatelessWidget {
   const _NavItem({
     required this.destination,
     required this.selected,
-    required this.color,
     required this.onTap,
   });
 
+  static const Duration _duration = Duration(milliseconds: 200);
+  static const double _indicatorWidth = 18;
+  static const double _indicatorHeight = 3;
+
   final AppBottomNavDestination destination;
   final bool selected;
-  final Color color;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    return Tooltip(
-      message: destination.label,
-      child: InkWell(
-        onTap: onTap,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              selected ? destination.selectedIcon : destination.icon,
-              size: AppSizes.iconLg,
-              color: color,
-            ),
-            const SizedBox(height: AppSpacing.xs),
-            AnimatedContainer(
-              duration: const Duration(milliseconds: 180),
-              width: selected ? AppSizes.badgeDot : 0,
-              height: selected ? AppSizes.badgeDot : 0,
-              decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-            ),
-          ],
+    final Color color = selected
+        ? AppColors.brandPrimary
+        : AppColors.textSecondaryDark.withOpacity(0.7);
+    return Semantics(
+      selected: selected,
+      child: Tooltip(
+        message: destination.label,
+        child: InkWell(
+          onTap: onTap,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              AnimatedSwitcher(
+                duration: _duration,
+                child: Icon(
+                  selected ? destination.selectedIcon : destination.icon,
+                  key: ValueKey<bool>(selected),
+                  size: AppSizes.iconLg,
+                  color: color,
+                ),
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              AnimatedContainer(
+                duration: _duration,
+                curve: Curves.easeOutCubic,
+                width: selected ? _indicatorWidth : 0,
+                height: _indicatorHeight,
+                decoration: BoxDecoration(
+                  color: AppColors.brandPrimary,
+                  borderRadius: BorderRadius.circular(_indicatorHeight),
+                  boxShadow: selected
+                      ? [
+                          BoxShadow(
+                            color: AppColors.brandPrimary.withOpacity(0.5),
+                            blurRadius: 8,
+                          ),
+                        ]
+                      : null,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

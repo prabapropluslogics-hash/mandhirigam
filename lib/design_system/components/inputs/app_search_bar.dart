@@ -17,8 +17,10 @@ class AppSearchBar extends StatelessWidget {
     this.onTap,
     this.onChanged,
     this.onSubmitted,
+    this.height = AppSizes.searchBarHeight,
   });
 
+  final double height;
   final TextEditingController? controller;
   final FocusNode? focusNode;
   final String hintText;
@@ -31,7 +33,7 @@ class AppSearchBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: AppSizes.searchBarHeight,
+      height: height,
       child: TextField(
         controller: controller,
         focusNode: focusNode,

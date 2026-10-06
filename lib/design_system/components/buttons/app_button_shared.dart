@@ -24,6 +24,7 @@ class AppButtonChild extends StatelessWidget {
     required this.isExpanded,
     required this.loaderColor,
     this.leadingIcon,
+    this.leading,
     this.trailingIcon,
   });
 
@@ -32,6 +33,10 @@ class AppButtonChild extends StatelessWidget {
   final bool isExpanded;
   final Color loaderColor;
   final IconData? leadingIcon;
+
+  /// Custom leading mark (e.g. a brand logo); takes precedence over
+  /// [leadingIcon].
+  final Widget? leading;
   final IconData? trailingIcon;
 
   @override
@@ -48,7 +53,10 @@ class AppButtonChild extends StatelessWidget {
       mainAxisSize: isExpanded ? MainAxisSize.max : MainAxisSize.min,
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        if (leadingIcon != null) ...[
+        if (leading != null) ...[
+          leading!,
+          const SizedBox(width: AppSpacing.md),
+        ] else if (leadingIcon != null) ...[
           Icon(leadingIcon, size: AppSizes.iconMd),
           const SizedBox(width: AppSpacing.sm),
         ],

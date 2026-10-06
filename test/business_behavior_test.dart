@@ -6,6 +6,7 @@ import 'package:maanthirigam/data/models/payment.dart';
 import 'package:maanthirigam/data/models/rich_text_document.dart';
 import 'package:maanthirigam/data/models/user_profile.dart';
 import 'package:maanthirigam/data/repositories/auth_repository.dart';
+import 'package:maanthirigam/data/services/firebase_auth_gateway.dart';
 import 'package:maanthirigam/features/reader/presentation/widgets/rich_text_document_view.dart';
 import 'package:maanthirigam/state/auth_controller.dart';
 import 'package:maanthirigam/state/payment_controller.dart';
@@ -144,6 +145,10 @@ class _MemoryAuthRepository implements AuthRepository {
     if (current == null) return null;
     return GoogleAuthResult(accessToken: 'token', user: current);
   }
+
+  @override
+  Stream<FirebaseIdentity?> firebaseUserChanges() =>
+      const Stream<FirebaseIdentity?>.empty();
 
   @override
   Future<void> signOutLocal() async {

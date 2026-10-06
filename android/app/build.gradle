@@ -3,6 +3,7 @@ plugins {
     id "kotlin-android"
     // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
     id "dev.flutter.flutter-gradle-plugin"
+    id "com.google.gms.google-services"
 }
 
 def localProperties = new Properties()
@@ -21,6 +22,33 @@ if (flutterVersionCode == null) {
 def flutterVersionName = localProperties.getProperty('flutter.versionName')
 if (flutterVersionName == null) {
     flutterVersionName = '1.0'
+}
+
+// App Links host/path for shared book URLs, taken from the same
+// APP_SHARE_BASE_URL dart-define the Dart code uses. Without it the filter
+// points at the reserved, never-resolving "share.invalid" host.
+def dartDefines = [:]
+if (project.hasProperty('dart-defines')) {
+    project.property('dart-defines').toString().split(',').each { entry ->
+        try {
+            def pair = new String(entry.decodeBase64(), 'UTF-8').split('=', 2)
+            if (pair.length == 2) dartDefines[pair[0]] = pair[1]
+        } catch (ignored) {
+        }
+    }
+}
+def shareHost = 'share.invalid'
+def sharePathPrefix = '/book/'
+try {
+    def shareBase = (dartDefines['APP_SHARE_BASE_URL'] ?: '').toString().trim()
+    if (shareBase) {
+        def shareUri = new URI(shareBase)
+        if (shareUri.scheme == 'https' && shareUri.host) {
+            shareHost = shareUri.host
+            sharePathPrefix = (shareUri.path ?: '').replaceAll('/+$', '') + '/book/'
+        }
+    }
+} catch (ignored) {
 }
 
 android {
@@ -46,10 +74,12 @@ android {
         applicationId "com.maanthirigam.maanthirigam"
         // You can update the following values to match your application needs.
         // For more information, see: https://docs.flutter.dev/deployment/android#reviewing-the-gradle-build-configuration.
-        minSdkVersion flutter.minSdkVersion
+        // firebase_auth requires API 23+.
+        minSdkVersion 23
         targetSdkVersion flutter.targetSdkVersion
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
+        manifestPlaceholders += [shareHost: shareHost, sharePathPrefix: sharePathPrefix]
     }
 
     buildTypes {
@@ -65,4 +95,7 @@ flutter {
     source '../..'
 }
 
-dependencies {}
+dependencies {
+    // Google Play Install Referrer: deferred book links after a Play install.
+    implementation 'com.android.installreferrer:installreferrer:2.2'
+}

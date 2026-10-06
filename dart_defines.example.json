@@ -1,0 +1,6 @@
+{
+  "API_BASE_URL": "https://mandhirigam-admin.onrender.com/api/v1",
+  "GOOGLE_SERVER_CLIENT_ID": "",
+  "APP_SHARE_BASE_URL": "",
+  "DEV": "true"
+}

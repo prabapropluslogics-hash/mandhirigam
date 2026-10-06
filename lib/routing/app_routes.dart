@@ -5,4 +5,5 @@ abstract final class AppRoutes {
   static const String login = '/login';
   static const String bookDetails = '/book-details';
   static const String reader = '/reader';
+  static const String settings = '/settings';
 }

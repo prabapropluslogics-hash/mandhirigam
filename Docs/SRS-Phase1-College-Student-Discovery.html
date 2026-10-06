@@ -1,0 +1,1380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>SRS-CDP-P1 | College &amp; Student Discovery Platform — Phase 1</title>
+<style>
+  :root {
+    --ink: #1c2834;
+    --muted: #5c6b7a;
+    --line: #d5dde6;
+    --navy: #0e2744;
+    --navy-2: #16365c;
+    --accent: #1f4e79;
+    --gold: #8d6a2f;
+    --paper: #ffffff;
+    --wash: #f4f7fa;
+    --committed: #e7f2ea;
+    --elaborated: #e8f1f8;
+    --proposed: #fbf3e4;
+    --excluded: #f8e8e8;
+    --critical: #7a1f2b;
+  }
+  * { box-sizing: border-box; }
+  html { font-size: 11pt; }
+  body {
+    margin: 0;
+    color: var(--ink);
+    background: #e8edf2;
+    font-family: Calibri, "Segoe UI", Arial, sans-serif;
+    line-height: 1.45;
+  }
+  .sheet {
+    max-width: 210mm;
+    margin: 0 auto;
+    background: var(--paper);
+  }
+  .cover {
+    min-height: 100vh;
+    background: var(--navy);
+    color: #fff;
+    padding: 28mm 18mm 16mm;
+    display: flex;
+    flex-direction: column;
+    page-break-after: always;
+  }
+  .cover .kicker {
+    letter-spacing: .18em;
+    text-transform: uppercase;
+    font-size: 11px;
+    color: #d7c39a;
+    margin: 0 0 18mm;
+  }
+  .cover h1 {
+    font-family: Georgia, "Times New Roman", serif;
+    font-weight: normal;
+    font-size: 34px;
+    line-height: 1.15;
+    margin: 0 0 8px;
+  }
+  .cover h2 {
+    font-family: Georgia, "Times New Roman", serif;
+    font-weight: normal;
+    font-size: 20px;
+    color: #d7c39a;
+    margin: 0 0 10mm;
+  }
+  .cover .rule { height: 3px; width: 72px; background: #d7c39a; border: 0; margin: 0 0 10mm; }
+  .cover p { max-width: 140mm; color: #e6edf4; margin: 0 0 6mm; }
+  .meta-grid { display: grid; grid-template-columns: 42mm 1fr; gap: 2mm 6mm; margin-top: auto; font-size: 12px; }
+  .meta-grid div:nth-child(odd) { color: #d7c39a; }
+  .content { padding: 12mm 14mm 18mm; }
+  h1.sec, h2, h3, h4 { font-family: Georgia, "Times New Roman", serif; font-weight: normal; color: var(--navy); }
+  h1.sec { font-size: 22px; margin: 8mm 0 3mm; padding-top: 2mm; border-top: 3px solid var(--navy); page-break-after: avoid; }
+  h2 { font-size: 16px; margin: 6mm 0 2mm; page-break-after: avoid; }
+  h3 { font-size: 13.5px; margin: 4mm 0 1.5mm; color: var(--accent); page-break-after: avoid; }
+  h4 { font-size: 12.5px; margin: 3mm 0 1mm; page-break-after: avoid; }
+  p { margin: 0 0 2.5mm; }
+  ul, ol { margin: 0 0 3mm; padding-left: 5mm; }
+  li { margin: 0 0 1mm; }
+  a { color: var(--accent); }
+  table { width: 100%; border-collapse: collapse; margin: 0 0 4mm; font-size: 10pt; page-break-inside: auto; }
+  th, td { border: 1px solid var(--line); padding: 1.6mm 2mm; vertical-align: top; text-align: left; }
+  th { background: var(--navy); color: #fff; font-weight: 600; }
+  tr { page-break-inside: avoid; }
+  tr:nth-child(even) td { background: #f8fafc; }
+  caption { caption-side: top; text-align: left; font-weight: 700; color: var(--navy); margin: 0 0 1.5mm; font-size: 10.5pt; }
+  .note, .callout { background: var(--wash); border-left: 3px solid var(--accent); padding: 2.5mm 3.5mm; margin: 0 0 4mm; }
+  .warn { background: #fbf6ee; border-left: 3px solid var(--gold); padding: 2.5mm 3.5mm; margin: 0 0 4mm; }
+  .danger { background: #fdf4f4; border-left: 3px solid var(--critical); padding: 2.5mm 3.5mm; margin: 0 0 4mm; }
+  code { font-family: Consolas, "Courier New", monospace; font-size: 9.5pt; }
+  .tag { display: inline-block; font-size: 9pt; letter-spacing: .03em; padding: .2mm 1.6mm; border-radius: 2px; font-family: Calibri, "Segoe UI", sans-serif; }
+  .c { background: var(--committed); }
+  .e { background: var(--elaborated); }
+  .p { background: var(--proposed); }
+  .x { background: var(--excluded); }
+  .toc a { text-decoration: none; color: var(--ink); }
+  .toc td:first-child { width: 14mm; color: var(--accent); font-weight: 700; }
+  .flow { display: flex; flex-wrap: wrap; gap: 1.5mm; margin: 0 0 4mm; }
+  .flow span { background: var(--navy); color: #fff; padding: 1.4mm 2.2mm; font-size: 9.5pt; }
+  .flow span.alt { background: var(--accent); }
+  .flow span.gold { background: #6e5424; }
+  .small { color: var(--muted); font-size: 9.5pt; }
+  .sig td { height: 14mm; }
+  @media print {
+    body { background: #fff; }
+    .sheet { max-width: none; }
+    .content { padding: 0; }
+    a { color: inherit; text-decoration: none; }
+  }
+  @page {
+    size: A4;
+    margin: 14mm 12mm 16mm 12mm;
+    @bottom-left { content: "SRS-CDP-P1  ·  Phase 1  ·  Confidential"; font-family: Calibri, sans-serif; font-size: 9px; color: #5c6b7a; }
+    @bottom-right { content: "Page " counter(page); font-family: Calibri, sans-serif; font-size: 9px; color: #5c6b7a; }
+  }
+  @page :first { margin: 0; @bottom-left { content: none; } @bottom-right { content: none; } }
+</style>
+</head>
+<body>
+<div class="sheet">
+
+<section class="cover">
+  <p class="kicker">Software Requirements Specification</p>
+  <h1>College &amp; Student Discovery Platform</h1>
+  <h2>Phase 1 — Implementation SRS</h2>
+  <hr class="rule" />
+  <p>College data management, public college discovery, student requirement collection, rule-based college recommendation, scholarship information, student enquiry, and priority lead routing with Best Academy as the first recipient.</p>
+  <p>This document is the implementation baseline prepared from the Phase 1 requirement pack. It preserves the original business intent, closes gaps that would otherwise make the build ambiguous, and isolates every decision the source document does not actually make.</p>
+  <div class="meta-grid">
+    <div>Document ID</div><div>SRS-CDP-P1</div>
+    <div>Version</div><div>1.0 — Draft for review and sign-off</div>
+    <div>Date</div><div>28 September 2026</div>
+    <div>Phase</div><div>Phase 1 only</div>
+    <div>Build window</div><div>40 working days, starting only after the readiness gate in Section 34</div>
+    <div>Status</div><div>Not approved for development start until Section 35 blockers are closed</div>
+    <div>Classification</div><div>Client and project confidential</div>
+  </div>
+</section>
+
+<div class="content">
+
+<h1 class="sec" id="s1">1. Document Control</h1>
+<table>
+  <caption>1.1 Document identity</caption>
+  <tr><th>Item</th><th>Detail</th></tr>
+  <tr><td>Title</td><td>Software Requirements Specification — College &amp; Student Discovery Platform, Phase 1</td></tr>
+  <tr><td>Document ID</td><td>SRS-CDP-P1</td></tr>
+  <tr><td>Source material</td><td>Phase 1 Development Requirement Document (sections 1–34), technology stack, team structure, quotation, and terms and conditions supplied with this request</td></tr>
+  <tr><td>Prepared for</td><td>Client stakeholders, project manager, UI/UX, frontend, backend, database, QA, and deployment teams</td></tr>
+  <tr><td>Vendor named in the source terms</td><td>PROPLUS</td></tr>
+  <tr><td>Product name</td><td>Not formally named in the source. This SRS uses “Platform” for the College / Course / Scholarship Discovery Platform.</td></tr>
+  <tr><td>Related commercial value stated in the source</td><td>INR 250,000 plus 18% GST. Commercial conflicts are recorded in Appendix A and are not treated as software requirements.</td></tr>
+</table>
+
+<h2>1.1 Version history</h2>
+<table>
+  <tr><th>Version</th><th>Date</th><th>Description</th></tr>
+  <tr><td>1.0</td><td>28 September 2026</td><td>First implementation SRS. Full review of the Phase 1 pack. Committed scope separated from elaborations, proposed baselines, exclusions, and open questions.</td></tr>
+</table>
+
+<h2>1.2 How to read requirement labels</h2>
+<p>Every requirement in this SRS carries one label. The label is the control against silent scope growth.</p>
+<table>
+  <tr><th>Label</th><th>Meaning</th></tr>
+  <tr><td><span class="tag c">Committed</span></td><td>Stated in the source, or a direct restatement of it. This is Phase 1 scope.</td></tr>
+  <tr><td><span class="tag e">Elaborated</span></td><td>Detail added only because the committed requirement cannot be built, tested, or kept consistent without it. The business outcome is unchanged.</td></tr>
+  <tr><td><span class="tag p">Proposed</span></td><td>A decision the source does not make. It is written here so reviewers can accept or replace it. It is not approved scope until the related open question is closed. See Section 35.</td></tr>
+  <tr><td><span class="tag x">Excluded</span></td><td>Named in the wider product vision, or implied by the technology list, but outside the Phase 1 module list. Building it is a change request under source sections 31 and 33.</td></tr>
+</table>
+<div class="warn">
+  <strong>Development-start rule, preserved from the source.</strong> The 40-working-day clock does not start when this SRS is issued. It starts only after Phase 1 requirements are final, the college and scholarship data required to build and prove the flows has been supplied, lead-routing rules are confirmed, content and assets are received, and written approval to proceed is given. Section 34 is the checklist. Section 35 lists the decisions that are still open.
+</div>
+
+<h2>1.3 Approval</h2>
+<table class="sig">
+  <tr><th>Role</th><th>Name</th><th>Decision</th><th>Date</th></tr>
+  <tr><td>Client business owner</td><td></td><td>Approved / Returned</td><td></td></tr>
+  <tr><td>Client single point of contact</td><td></td><td>Approved / Returned</td><td></td></tr>
+  <tr><td>Vendor project lead</td><td></td><td>Approved / Returned</td><td></td></tr>
+</table>
+<p class="small">Approval of this SRS closes the proposed items the client has accepted and confirms the exclusions. Items left unanswered in Section 35 remain blockers. Approval of the SRS is not, by itself, the development-start gate.</p>
+
+<h1 class="sec" id="s2">2. Contents</h1>
+<table class="toc">
+  <tr><td>1</td><td>Document control</td></tr>
+  <tr><td>2</td><td>Contents</td></tr>
+  <tr><td>3</td><td>Introduction and purpose</td></tr>
+  <tr><td>4</td><td>Requirement analysis findings</td></tr>
+  <tr><td>5</td><td>Scope</td></tr>
+  <tr><td>6</td><td>Product overview</td></tr>
+  <tr><td>7</td><td>Objectives and success outcomes</td></tr>
+  <tr><td>8</td><td>Definitions</td></tr>
+  <tr><td>9</td><td>User roles and permissions</td></tr>
+  <tr><td>10</td><td>Assumptions and dependencies</td></tr>
+  <tr><td>11</td><td>System architecture</td></tr>
+  <tr><td>12</td><td>User journeys</td></tr>
+  <tr><td>13</td><td>Functional requirements</td></tr>
+  <tr><td>14</td><td>Module specifications</td></tr>
+  <tr><td>15</td><td>Frontend requirements</td></tr>
+  <tr><td>16</td><td>Admin panel requirements</td></tr>
+  <tr><td>17</td><td>Backend and API requirements</td></tr>
+  <tr><td>18</td><td>Data requirements</td></tr>
+  <tr><td>19</td><td>Business rules</td></tr>
+  <tr><td>20</td><td>Validation rules</td></tr>
+  <tr><td>21</td><td>Workflows and state transitions</td></tr>
+  <tr><td>22</td><td>Recommendation model</td></tr>
+  <tr><td>23</td><td>Lead routing</td></tr>
+  <tr><td>24</td><td>Notifications</td></tr>
+  <tr><td>25</td><td>Search, filter, sort, and pagination</td></tr>
+  <tr><td>26</td><td>Operational views</td></tr>
+  <tr><td>27</td><td>Security, access, and privacy</td></tr>
+  <tr><td>28</td><td>Non-functional requirements</td></tr>
+  <tr><td>29</td><td>Integrations</td></tr>
+  <tr><td>30</td><td>Error and exception handling</td></tr>
+  <tr><td>31</td><td>Audit and logging</td></tr>
+  <tr><td>32</td><td>SEO and public content</td></tr>
+  <tr><td>33</td><td>Exclusions and change control</td></tr>
+  <tr><td>34</td><td>Data readiness and the development-start gate</td></tr>
+  <tr><td>35</td><td>Open questions</td></tr>
+  <tr><td>36</td><td>Acceptance criteria</td></tr>
+  <tr><td>37</td><td>End-to-end system flow</td></tr>
+  <tr><td>38</td><td>Traceability</td></tr>
+  <tr><td>A</td><td>Appendix A — Commercial statements, as supplied, with conflicts</td></tr>
+  <tr><td>B</td><td>Appendix B — Source technology and team statements</td></tr>
+</table>
+
+<h1 class="sec" id="s3">3. Introduction and Purpose</h1>
+<h2>3.1 Purpose</h2>
+<p>This SRS defines what Phase 1 of the Platform must do so that a developer can build it, a QA engineer can test it, and the client can see what is included. It is the controlled description of Phase 1 after a full review of the supplied requirement pack.</p>
+<h2>3.2 Audience</h2>
+<ul>
+  <li>Client business owner and single point of contact, for scope and business-rule confirmation.</li>
+  <li>Project manager, for the readiness gate, exclusions, and change control.</li>
+  <li>UI/UX and frontend engineers, for public pages, the requirement form, and the admin panel.</li>
+  <li>Backend and database engineers, for the college model, recommendation, and lead state machine.</li>
+  <li>QA, for acceptance criteria, state transitions, and edge cases.</li>
+  <li>Deployment support, for the scheduler, file storage, mail, and environment dependencies. Full hosting is not part of the quoted build; see Appendix A.</li>
+</ul>
+<h2>3.3 Product intent preserved from the source</h2>
+<p>Phase 1 establishes the working foundation of an education-discovery platform. An administrator maintains complete college records. Students see that information, submit their requirements, receive suitable colleges, see scholarship information where it exists, and raise an enquiry. Every enquiry is offered first to Best Academy. If the required acceptance does not happen within the configured interval, the lead moves to the next active listing in the configured order.</p>
+<p>The wider vision includes comparison tools, a college predictor, a separate course finder, reviews, community, blogs, AI-assisted publishing, partner-content workflow, college-representative accounts, and an SEO back office. Those items are not Phase 1. Section 33 lists them as excluded so they are not designed in passing.</p>
+
+<h1 class="sec" id="s4">4. Requirement Analysis Findings</h1>
+<p>This section records the review. It does not add features. Later sections either specify the committed behaviour or send the unresolved item to Section 35.</p>
+
+<h2>4.1 Findings that are safe to close inside this SRS</h2>
+<table>
+  <caption>4.1 Closed by scope control or by a necessary elaboration</caption>
+  <tr><th>ID</th><th>Finding</th><th>Treatment</th></tr>
+  <tr><td>F-01</td><td>The technology paragraph addresses a “Property Owner”. The rest of the document is a college platform. No property, owner, or real-estate workflow is described.</td><td>Treated as copied template text. Phase 1 users are the public student and admin users in Section 9. No property module is in scope.</td></tr>
+  <tr><td>F-02</td><td>Student and college-representative account management appears only in the overall vision. The Phase 1 module list and the inclusion table do not include registration, student login, or a college portal.</td><td>Public students use the site without an account. College self-service portals are excluded. Admin sign-in is required because an admin panel cannot operate without it.</td></tr>
+  <tr><td>F-03</td><td>“Publish College” is in the end-to-end flow, but college status values are not listed.</td><td>Elaborated statuses: Draft, Published, Unpublished, Archived. Only Published colleges appear on the public site.</td></tr>
+  <tr><td>F-04</td><td>Scholarship is specified as structured data, then also summarized as if it were a text block. A field called “Student Experience” sits on the scholarship, while community reviews are outside Phase 1.</td><td>Scholarship is a child entity with the fields in Section 18. “Student experience” is an admin-authored note on that scholarship. It is not a student review system.</td></tr>
+  <tr><td>F-05</td><td>Lead history and lead movement history are required. A free-typed lead status would let an operator skip Best Academy.</td><td>Lead statuses are system-defined. Operators do not invent statuses. Movement history is written by the routing engine and by the Accept action.</td></tr>
+  <tr><td>F-06</td><td>Section 26 lists a routing interval on the routing configuration, and the narrative default is 30 minutes.</td><td>Each routing row has its own interval. The default value of a new row is 30 minutes.</td></tr>
+  <tr><td>F-07</td><td>The public site must list and search colleges, and must also collect a requirement form. These are two journeys, not one.</td><td>Both journeys are specified. An enquiry from either journey follows the same lead rule.</td></tr>
+  <tr><td>F-08</td><td>Best Academy must act within a short interval. That action cannot be audited if there is no authenticated user and no in-app assignment.</td><td>Elaborated role: Lead Operator, linked to one routing listing, plus Platform Admin. This is an admin login, not a college portal.</td></tr>
+  <tr><td>F-09</td><td>Chart.js, Redux, Passport, Bootstrap, and Material UI are all named. Phase 1 has no chart or report module. Using every listed library would create two design systems and two auth stacks.</td><td>Phase 1 uses the stack decisions in Section 11. Charts are excluded. Passport is not used if Sanctum is confirmed. One component library is used, not both.</td></tr>
+  <tr><td>F-10</td><td>Cloud, email gateway, and third-party API costs are excluded from the quotation, while maps, mail, and hosting are needed for the described behaviour.</td><td>The system stores coordinates and sends notification events. Map tiles and outbound email work when the client supplies those services. Their cost is outside the build quotation.</td></tr>
+  <tr><td>F-11</td><td>Location filters and recommendation cannot work if city and state are free text.</td><td>Country, state, district, and city are reference lists. College and student locations point at those lists.</td></tr>
+  <tr><td>F-12</td><td>A published college must remain understandable when fees, scholarships, or placement data have not been provided yet.</td><td>Missing optional blocks are shown as “Not provided”. They are not invented and they do not crash the page.</td></tr>
+</table>
+
+<h2>4.2 Conflicts that this SRS does not silently decide</h2>
+<table>
+  <caption>4.2 Unresolved conflicts — details and questions are in Section 35 and Appendix A</caption>
+  <tr><th>ID</th><th>Conflict</th><th>Why it is not silently closed</th></tr>
+  <tr><td>F-13</td><td>Advance is written as “60% of INR 177,000 = INR 118,000”, and also as an advance of INR 177,000 with a balance of INR 118,000 against a GST-inclusive total of INR 295,000.</td><td>This is a contract figure. The arithmetic of the first phrase is wrong. The second set of figures does add up. The client must confirm the payable amounts in writing.</td></tr>
+  <tr><td>F-14</td><td>The balance is “1 equal installment” and also “payable over the next three months”.</td><td>Installment count and dates are commercial, not software behaviour.</td></tr>
+  <tr><td>F-15</td><td>Duration is 40 working days, and the same terms clause also states 10 working days for testing.</td><td>It is unclear whether testing is inside the 40 days or additional.</td></tr>
+  <tr><td>F-16</td><td>Source sections 30 and 34 start the 40 days after data and approval. The terms start the 40 days from “project initiation date”.</td><td>Both statements are preserved. This SRS uses sections 30 and 34 as the software readiness rule and asks the client to confirm that the contract means the same gate.</td></tr>
+  <tr><td>F-17</td><td>A student may enquire on a specific college, while every lead must go to Best Academy first.</td><td>The literal rule covers every enquiry. That will surprise users who think they are contacting the college on the page. It must be confirmed before build, because it changes both routing and the enquiry screen copy.</td></tr>
+  <tr><td>F-18</td><td>“Next eligible listing” may mean the next active row in an admin-ordered list, or the next college that matches the student’s course, budget, and location.</td><td>Section 26 describes an administered priority order. Matching filters are not defined. The routing section specifies the ordered list and leaves match-based skipping as an open question.</td></tr>
+  <tr><td>F-19</td><td>Recommendation inputs are listed in detail. Scores, ceilings, and “no result” behaviour are not.</td><td>A proposed matching model is written in Section 22 so it can be signed. It is not treated as already approved.</td></tr>
+  <tr><td>F-20</td><td>“Required action/acceptance” is not defined. Rejection is not mentioned.</td><td>Accept is specified as the only stopping action. A Reject button is not in the committed build.</td></tr>
+</table>
+
+<h2>4.3 Duplicate statements</h2>
+<p>The phase objective, the module list, the inclusion table, the end-to-end narrative, and the closing scope statement repeat the same Phase 1 boundary. This SRS states that boundary once, in Section 5, and traces each source section in Section 38. No requirement was dropped because it appeared twice.</p>
+
+<h1 class="sec" id="s5">5. Scope</h1>
+<h2>5.1 Phase 1 includes</h2>
+<table>
+  <caption>5.1 In-scope modules</caption>
+  <tr><th>Module</th><th>Outcome</th><th>Label</th></tr>
+  <tr><td>Admin authentication and admin users</td><td>Platform Admins and Lead Operators can sign in. A Platform Admin can create and deactivate admin users.</td><td><span class="tag e">Elaborated</span></td></tr>
+  <tr><td>Reference data</td><td>Locations and the classification lists used by colleges, courses, fees, and the student form.</td><td><span class="tag e">Elaborated</span></td></tr>
+  <tr><td>College Master</td><td>Create, maintain, publish, unpublish, and archive a college with the information groups in the source.</td><td><span class="tag c">Committed</span></td></tr>
+  <tr><td>Courses</td><td>Multiple courses per college, including eligibility, duration, mode, specializations, and course status.</td><td><span class="tag c">Committed</span></td></tr>
+  <tr><td>Admission information</td><td>College-level admission process, dates, documents, and contact.</td><td><span class="tag c">Committed</span></td></tr>
+  <tr><td>Fees</td><td>Structured, course-linked fee components, including category-wise amounts where supplied.</td><td><span class="tag c">Committed</span></td></tr>
+  <tr><td>Scholarships</td><td>Structured scholarships and their display on college and recommendation views.</td><td><span class="tag c">Committed</span></td></tr>
+  <tr><td>Facilities and placement</td><td>Structured facility flags and placement information maintained by admin.</td><td><span class="tag c">Committed</span></td></tr>
+  <tr><td>Public college discovery</td><td>Listing, search, filters, and a college profile.</td><td><span class="tag c">Committed</span></td></tr>
+  <tr><td>Student requirement form</td><td>Structured capture of identity, academics, course, college, budget, and scholarship requirements.</td><td><span class="tag c">Committed</span></td></tr>
+  <tr><td>Recommendation</td><td>Identify and show suitable published colleges from the submitted requirements, including scholarship information where applicable.</td><td><span class="tag c">Committed</span></td></tr>
+  <tr><td>Enquiry</td><td>Student can enquire from a college profile and from recommendations.</td><td><span class="tag c">Committed</span></td></tr>
+  <tr><td>Lead routing</td><td>Best Academy first. Configurable interval, default 30 minutes. Then the next active configured listing. History of every movement.</td><td><span class="tag c">Committed</span></td></tr>
+  <tr><td>Operational lead desk</td><td>Admins can see lead status, assignment, and history, and the current assignee can accept.</td><td><span class="tag c">Committed</span></td></tr>
+</table>
+
+<h2>5.2 Future vision, not Phase 1</h2>
+<p>These items are acknowledged so the product direction is not lost. They are not designed, estimated, or built in Phase 1.</p>
+<ul>
+  <li>Student accounts, saved profiles, and student dashboards.</li>
+  <li>College-representative accounts and a college self-service portal.</li>
+  <li>College Predictor, a separate Course Finder product, and side-by-side college comparison.</li>
+  <li>Reviews, ratings, and moderation.</li>
+  <li>Community: posts, comments, student-to-student interaction, and community content.</li>
+  <li>Editorial blog and news, AI-assisted content workflow, and partner-content workflow.</li>
+  <li>SEO back office, campaigns, and marketing automation.</li>
+  <li>Analytics dashboards and charts.</li>
+  <li>Counselling CRM stages beyond lead acceptance and exhaustion of the routing list.</li>
+  <li>Payments, application submission to a college, and admission processing on behalf of a college.</li>
+</ul>
+
+<h2>5.3 Explicitly out of the quoted build</h2>
+<p>From the source exclusions and from the absence of any requirement: cloud hosting charges, email-gateway charges, third-party API charges, full infrastructure operation, native mobile applications, SMS, WhatsApp, payment gateways, and multi-language content management. Basic deployment guidance to the single point of contact is a contractual statement in Appendix A, not a hosted production service.</p>
+
+<h1 class="sec" id="s6">6. Product Overview</h1>
+<p>The Platform is a responsive web application. Administrators maintain a structured catalogue of colleges. Students either browse that catalogue or submit a requirement form and receive a ranked shortlist. Scholarship records travel with the college into both the profile and the shortlist. An enquiry creates one lead. The lead is assigned to Best Academy before any later listing.</p>
+<p>Phase 1 does not decide admissions, collect fees from students, or publish community opinion. Placement numbers, ranks, grades, and scholarship amounts are data entered by administrators from material the client provides. The system does not verify those claims with universities or regulators.</p>
+
+<h1 class="sec" id="s7">7. Objectives and Success Outcomes</h1>
+<table>
+  <caption>7.1 Phase 1 is successful when all of the following are true</caption>
+  <tr><th>ID</th><th>Outcome</th></tr>
+  <tr><td>OBJ-01</td><td>A Platform Admin can create a college, add courses, fees, admission, scholarships, facilities, placement, and location, and publish it.</td></tr>
+  <tr><td>OBJ-02</td><td>A student can find that college by browsing or searching and can open a profile that shows each information group that was published.</td></tr>
+  <tr><td>OBJ-03</td><td>A student can submit the requirement form and receive a shortlist of suitable published colleges, with scholarship information where the college has applicable scholarship records.</td></tr>
+  <tr><td>OBJ-04</td><td>A student can submit an enquiry. The enquiry is stored even if routing configuration is incomplete.</td></tr>
+  <tr><td>OBJ-05</td><td>When routing configuration is valid, the new lead is assigned to Best Academy and to no other listing.</td></tr>
+  <tr><td>OBJ-06</td><td>If Best Academy has not accepted when its interval elapses, the lead moves to the next active listing. The previous assignee no longer has the accept action. History records both assignments.</td></tr>
+  <tr><td>OBJ-07</td><td>Accepting the lead stops further movement.</td></tr>
+  <tr><td>OBJ-08</td><td>Unpublished, draft, and archived colleges never appear in public listing, search, or recommendations.</td></tr>
+  <tr><td>OBJ-09</td><td>A change outside Section 5.1 is not built as part of the 40-day Phase 1 delivery.</td></tr>
+</table>
+
+<h1 class="sec" id="s8">8. Definitions</h1>
+<table>
+  <tr><th>Term</th><th>Meaning in this SRS</th></tr>
+  <tr><td>College</td><td>One institution record in College Master. Phase 1 stores one primary location for that record.</td></tr>
+  <tr><td>Course</td><td>A program offered by one college. A college has many courses.</td></tr>
+  <tr><td>Scholarship</td><td>A structured benefit record belonging to one college, optionally limited to one course.</td></tr>
+  <tr><td>Student</td><td>A public visitor. Phase 1 does not give the student a login.</td></tr>
+  <tr><td>Requirement submission</td><td>The stored answers of one completed requirement form.</td></tr>
+  <tr><td>Recommendation set</td><td>The ordered colleges produced from one requirement submission.</td></tr>
+  <tr><td>Enquiry</td><td>The student’s request to be contacted about one or more colleges. Submitting it creates one lead.</td></tr>
+  <tr><td>Lead</td><td>The operational record created by an enquiry, including snapshots of the student and the colleges of interest.</td></tr>
+  <tr><td>Listing / routing target</td><td>A row in the lead-routing order. It is either a partner organisation or a college. Best Academy is a routing target.</td></tr>
+  <tr><td>Best Academy</td><td>The routing target that must occupy priority 1 for every lead that enters routing.</td></tr>
+  <tr><td>Acceptance</td><td>The explicit Accept action by the current assignee or by a Platform Admin. It is the only action that stops escalation.</td></tr>
+  <tr><td>Escalation</td><td>Automatic assignment to the next active routing target after the current interval elapses without acceptance.</td></tr>
+  <tr><td>Platform Admin</td><td>An admin user with catalogue, configuration, lead, and user-management rights.</td></tr>
+  <tr><td>Lead Operator</td><td>An admin user linked to exactly one routing target. The operator sees and can accept only leads currently assigned to that target.</td></tr>
+  <tr><td>Published</td><td>The only college status visible to students.</td></tr>
+</table>
+
+<h1 class="sec" id="s9">9. User Roles and Permissions</h1>
+<p>Phase 1 has three actors. There is no separate Super Admin. There is no public self-registration.</p>
+<table>
+  <caption>9.1 Permission matrix</caption>
+  <tr><th>Capability</th><th>Student</th><th>Lead Operator</th><th>Platform Admin</th></tr>
+  <tr><td>Browse, search, and open published colleges</td><td>Yes</td><td>Yes</td><td>Yes</td></tr>
+  <tr><td>Submit requirement form and view that submission’s recommendations</td><td>Yes</td><td>No duty</td><td>No duty</td></tr>
+  <tr><td>Submit an enquiry</td><td>Yes</td><td>No</td><td>No</td></tr>
+  <tr><td>Sign in to admin</td><td>No</td><td>Yes</td><td>Yes</td></tr>
+  <tr><td>Manage reference data and colleges</td><td>No</td><td>No</td><td>Yes</td></tr>
+  <tr><td>Publish, unpublish, archive colleges</td><td>No</td><td>No</td><td>Yes</td></tr>
+  <tr><td>Configure routing targets, order, interval, active flag</td><td>No</td><td>No</td><td>Yes</td></tr>
+  <tr><td>View requirement submissions</td><td>Own result on screen after submit</td><td>No</td><td>Yes, read-only</td></tr>
+  <tr><td>View a lead currently assigned to own listing</td><td>No</td><td>Yes</td><td>Yes</td></tr>
+  <tr><td>View leads assigned to other listings, queued leads, and full history</td><td>No</td><td>No</td><td>Yes</td></tr>
+  <tr><td>Accept the current lead</td><td>No</td><td>Yes, own listing only</td><td>Yes</td></tr>
+  <tr><td>Create, deactivate, and reset admin users</td><td>No</td><td>No</td><td>Yes</td></tr>
+  <tr><td>Change a lead’s status by typing a status</td><td>No</td><td>No</td><td>No</td></tr>
+  <tr><td>Skip Best Academy or reorder an in-flight lead</td><td>No</td><td>No</td><td>No</td></tr>
+</table>
+<div class="note">Manual reassignment of a live lead is not a Phase 1 feature. If operations need an override, that is OQ-32 and a change of business rule, because an override can bypass Best Academy.</div>
+
+<h1 class="sec" id="s10">10. Assumptions and Dependencies</h1>
+<table>
+  <caption>10.1 Assumptions used to remove ambiguity. Each proposed assumption has an open question.</caption>
+  <tr><th>ID</th><th>Assumption</th><th>Label</th></tr>
+  <tr><td>A-01</td><td>The catalogue is India-oriented: rupee amounts, PIN codes of six digits, mobile numbers of ten digits, and the business clock in Asia/Kolkata.</td><td><span class="tag p">Proposed</span></td></tr>
+  <tr><td>A-02</td><td>The public interface and admin interface are in English. College content is stored and shown in the language the admin enters, which is expected to be English.</td><td><span class="tag p">Proposed</span></td></tr>
+  <tr><td>A-03</td><td>One college record has one primary campus location in Phase 1.</td><td><span class="tag p">Proposed</span></td></tr>
+  <tr><td>A-04</td><td>One requirement form captures one entrance exam.</td><td><span class="tag p">Proposed</span></td></tr>
+  <tr><td>A-05</td><td>Marks are percentages from 0 to 100, not letter grades or CGPA.</td><td><span class="tag p">Proposed</span></td></tr>
+  <tr><td>A-06</td><td>The client will supply master-list values and the college data pack before the development clock starts.</td><td><span class="tag c">Committed</span></td></tr>
+  <tr><td>A-07</td><td>Best Academy can be represented as a routing target even if it is not one of the browsable colleges. It may optionally be linked to a college record.</td><td><span class="tag p">Proposed</span></td></tr>
+  <tr><td>A-08</td><td>The client provides one production mailbox and the Best Academy operator’s mailbox if email notification is required on day one.</td><td><span class="tag e">Elaborated</span></td></tr>
+  <tr><td>A-09</td><td>The host runs the Laravel scheduler every minute. Escalation is delayed, not skipped, if the scheduler is down.</td><td><span class="tag e">Elaborated</span></td></tr>
+  <tr><td>A-10</td><td>Full production hosting, backups, domain, TLS certificate, and media CDN are client infrastructure, outside the quoted build cost.</td><td><span class="tag c">Committed</span></td></tr>
+</table>
+
+<h2>10.2 External dependencies</h2>
+<table>
+  <tr><th>Dependency</th><th>Required for</th><th>If it is not available</th></tr>
+  <tr><td>College, course, fee, scholarship, facility, placement, and location data approved by the client</td><td>Realistic recommendation testing and go-live content</td><td>Development of the structure can be prepared, but the 40-day clock and recommendation acceptance do not start. Empty states must still be tested with sample records marked as test data.</td></tr>
+  <tr><td>Master values: college type, ownership, course category, student category, scholarship type, university names</td><td>Forms, filters, and fee categories</td><td>Those lists ship empty or with the minimum Government / Private / No preference ownership choices. Filters for unsupplied types are hidden.</td></tr>
+  <tr><td>Logos and gallery images, with rights to publish</td><td>College cards and profiles</td><td>Pages render a text placeholder. Publish is still allowed.</td></tr>
+  <tr><td>Email gateway, paid outside this quotation</td><td>Email to assignees and optional student acknowledgement</td><td>On-screen confirmation and in-app admin notification still work. Email events are logged as not sent.</td></tr>
+  <tr><td>Google Maps JavaScript key, paid outside this quotation</td><td>Embedded map</td><td>Address, PIN, and an outbound map link are shown. Coordinates are still stored.</td></tr>
+  <tr><td>Written answers to Section 35 blockers</td><td>Recommendation behaviour and lead edge cases</td><td>Those parts are not ready to build.</td></tr>
+</table>
+
+<h1 class="sec" id="s11">11. System Architecture</h1>
+<p><span class="tag p">Proposed</span> and recommended for sign-off, consistent with the supplied stack and with not running two competing stacks.</p>
+<table>
+  <tr><th>Layer</th><th>Phase 1 choice</th></tr>
+  <tr><td>Public and admin UI</td><td>One React application built with Vite. Public routes and <code>/admin</code> routes. React Router.</td></tr>
+  <tr><td>UI components</td><td>Material UI. Bootstrap is not added as a second design system.</td></tr>
+  <tr><td>Forms</td><td>React Hook Form and Yup on the client. The API validates again.</td></tr>
+  <tr><td>HTTP</td><td>Axios.</td></tr>
+  <tr><td>Client session</td><td>React Context holds the authenticated admin session. Redux is not introduced unless a later phase needs it.</td></tr>
+  <tr><td>Charts</td><td>Not used in Phase 1.</td></tr>
+  <tr><td>Uploads</td><td>Dropzone for logo and gallery.</td></tr>
+  <tr><td>API</td><td>Laravel REST API. JSON. Laravel Sanctum for admin authentication. Passport is not implemented.</td></tr>
+  <tr><td>Database</td><td>MySQL 8.</td></tr>
+  <tr><td>Background work</td><td>Laravel scheduler every minute for lead escalation. Database queue for notification dispatch.</td></tr>
+  <tr><td>Files</td><td>Application storage for logo and gallery. Cloud object storage is not required for the build.</td></tr>
+  <tr><td>Admin notifications</td><td>In-app notification list, plus email when a gateway is configured.</td></tr>
+</table>
+<div class="note">The browser never decides lead priority. Recommendation scoring and escalation run on the server. A student cannot call an endpoint that assigns a lead to a listing other than the configured priority-1 target.</div>
+
+<h1 class="sec" id="s12">12. User Journeys</h1>
+<h2>12.1 Student — browse</h2>
+<div class="flow">
+  <span>Open site</span><span>College listing</span><span>Search or filter</span><span>Open profile</span><span>Review courses, fees, scholarships, facilities, placement, admission</span><span class="gold">Enquire</span>
+</div>
+<h2>12.2 Student — requirements and recommendation</h2>
+<div class="flow">
+  <span>Open requirement form</span><span>Enter sections</span><span>Submit</span><span class="alt">Server stores submission and scores colleges</span><span>Shortlist</span><span>Open a recommended college</span><span class="gold">Enquire</span>
+</div>
+<h2>12.3 Student — enquiry result</h2>
+<div class="flow">
+  <span>Enquiry form</span><span>Validation</span><span>Lead stored</span><span>On-screen reference number</span><span class="alt">Routing assigned or queued</span>
+</div>
+<p>The student is not shown the internal routing path, Best Academy’s response timer, or later listings. <span class="tag p">Proposed</span> OQ-45.</p>
+<h2>12.4 Platform Admin — catalogue</h2>
+<div class="flow">
+  <span>Sign in</span><span>Create college draft</span><span>Add courses and related blocks</span><span>Save</span><span class="gold">Publish</span><span>College becomes public</span>
+</div>
+<h2>12.5 Platform Admin — routing setup</h2>
+<div class="flow">
+  <span>Create Best Academy as priority 1</span><span>Set interval, default 30 minutes</span><span>Add later listings in order</span><span>Activate rows</span><span>Create Lead Operators linked to those rows</span>
+</div>
+<h2>12.6 Lead Operator — Best Academy</h2>
+<div class="flow">
+  <span>Notification of assignment</span><span>Open lead</span><span>Read student snapshot and colleges of interest</span><span class="gold">Accept</span><span>Escalation stops</span>
+</div>
+<h2>12.7 System — escalation</h2>
+<div class="flow">
+  <span>Interval elapses</span><span>Lead still unaccepted</span><span>History row written</span><span>Next active target assigned</span><span>New interval starts</span><span>Or list exhausted</span>
+</div>
+
+<h1 class="sec" id="s13">13. Functional Requirements</h1>
+<p>Detailed fields are in Section 18. Detailed screens are in Sections 15 and 16. Rules that constrain these requirements are in Section 19.</p>
+<table>
+  <caption>13.1 Catalogue and public discovery</caption>
+  <tr><th>ID</th><th>Requirement</th><th>Label</th></tr>
+  <tr><td>FR-COL-01</td><td>Platform Admin can create, view, edit, unpublish, and archive a college. The college holds identity, description, academic identity, contact, location, media, courses, admission, fees, scholarships, facilities, and placement.</td><td><span class="tag c">Committed</span></td></tr>
+  <tr><td>FR-COL-02</td><td>A college can be saved as Draft with a name only. Publish runs the publish checklist in Section 20.</td><td><span class="tag e">Elaborated</span></td></tr>
+  <tr><td>FR-COL-03</td><td>Only Published colleges are returned by public listing, search, filters, profiles, and recommendation.</td><td><span class="tag e">Elaborated</span></td></tr>
+  <tr><td>FR-COL-04</td><td>A college has many courses. Each course has the academic fields in Section 18, many specializations, and its own Active or Inactive status.</td><td><span class="tag c">Committed</span></td></tr>
+  <tr><td>FR-COL-05</td><td>Inactive courses stay in admin and are hidden on the public profile and in recommendation.</td><td><span class="tag e">Elaborated</span></td></tr>
+  <tr><td>FR-COL-06</td><td>Fees are stored as components against a course, with an optional student category, a frequency, and an admin-entered total estimated fee for that course.</td><td><span class="tag c">Committed</span></td></tr>
+  <tr><td>FR-COL-07</td><td>The system does not replace the admin-entered total with a silent sum of components.</td><td><span class="tag e">Elaborated</span></td></tr>
+  <tr><td>FR-COL-08</td><td>Each college has one admission block with process, eligibility, entrance exam, application process, application dates, admission dates, selection, counselling, required documents, and admission contact.</td><td><span class="tag c">Committed</span></td></tr>
+  <tr><td>FR-COL-09</td><td>Each college has many scholarships using the structured fields in Section 18, not one free-text box.</td><td><span class="tag c">Committed</span></td></tr>
+  <tr><td>FR-COL-10</td><td>Each college has one facilities block covering every facility named in the source, each set to Available, Not available, or Not provided, plus a note.</td><td><span class="tag e">Elaborated</span></td></tr>
+  <tr><td>FR-COL-11</td><td>Each college has one placement block. Empty placement data is shown as not provided.</td><td><span class="tag c">Committed</span></td></tr>
+  <tr><td>FR-COL-12</td><td>Logo and gallery images can be uploaded, reordered, and removed. One gallery image can be marked as the cover.</td><td><span class="tag c">Committed</span></td></tr>
+  <tr><td>FR-PUB-01</td><td>Students can view a paginated list of published colleges, search, filter, sort, and open a profile.</td><td><span class="tag c">Committed</span></td></tr>
+  <tr><td>FR-PUB-02</td><td>The profile presents overview, courses, fees, scholarships, facilities, placement, admission, location, and an enquiry action.</td><td><span class="tag c">Committed</span></td></tr>
+  <tr><td>FR-PUB-03</td><td>The public profile of an unpublished or unknown college returns a not-found state. It does not reveal draft content.</td><td><span class="tag e">Elaborated</span></td></tr>
+</table>
+
+<table>
+  <caption>13.2 Student form, recommendation, and enquiry</caption>
+  <tr><th>ID</th><th>Requirement</th><th>Label</th></tr>
+  <tr><td>FR-STU-01</td><td>The student can complete one guided form covering basic details, academics, course preference, college preference, budget, and scholarship requirement.</td><td><span class="tag c">Committed</span></td></tr>
+  <tr><td>FR-STU-02</td><td>The form can be submitted without creating an enquiry. Submission stores the answers and returns recommendations.</td><td><span class="tag e">Elaborated</span></td></tr>
+  <tr><td>FR-STU-03</td><td>Scholarship requirement is a visible required question, not a collapsed optional note.</td><td><span class="tag c">Committed</span></td></tr>
+  <tr><td>FR-STU-04</td><td>The student must confirm consent to be contacted about the submission before it is stored.</td><td><span class="tag e">Elaborated</span></td></tr>
+  <tr><td>FR-REC-01</td><td>The server creates a recommendation set from the submission using published colleges and active courses only.</td><td><span class="tag c">Committed</span></td></tr>
+  <tr><td>FR-REC-02</td><td>Each recommended row shows college name, location, matched course, eligibility summary, fees, scholarship availability and relevant scholarship detail, admission summary, facilities summary, placement summary, and an enquiry action.</td><td><span class="tag c">Committed</span></td></tr>
+  <tr><td>FR-REC-03</td><td>If nothing matches, the student sees an explicit empty result and can still browse colleges or adjust the form. The system does not invent colleges.</td><td><span class="tag e">Elaborated</span></td></tr>
+  <tr><td>FR-ENQ-01</td><td>From a college profile, the student can enquire about that college.</td><td><span class="tag c">Committed</span></td></tr>
+  <tr><td>FR-ENQ-02</td><td>From a recommendation set, the student can enquire about one or more recommended colleges in one submission.</td><td><span class="tag c">Committed</span></td></tr>
+  <tr><td>FR-ENQ-03</td><td>Each successful enquiry creates exactly one lead and shows a reference number.</td><td><span class="tag e">Elaborated</span></td></tr>
+  <tr><td>FR-ENQ-04</td><td>A direct enquiry stores contact details even when the student has not filled the full requirement form. Name, mobile, email, consent, and at least one college are required on that shorter form.</td><td><span class="tag e">Elaborated</span></td></tr>
+</table>
+
+<table>
+  <caption>13.3 Lead routing and administration</caption>
+  <tr><th>ID</th><th>Requirement</th><th>Label</th></tr>
+  <tr><td>FR-LEAD-01</td><td>Every lead that enters routing is assigned first to the active Best Academy target and to no other target.</td><td><span class="tag c">Committed</span></td></tr>
+  <tr><td>FR-LEAD-02</td><td>If that lead is not accepted when the current target’s interval elapses, it is assigned to the next active target in ascending priority order.</td><td><span class="tag c">Committed</span></td></tr>
+  <tr><td>FR-LEAD-03</td><td>The default interval for a routing row is 30 minutes. Platform Admin can change the interval without a code release.</td><td><span class="tag c">Committed</span></td></tr>
+  <tr><td>FR-LEAD-04</td><td>Inactive routing rows are skipped.</td><td><span class="tag c">Committed</span></td></tr>
+  <tr><td>FR-LEAD-05</td><td>Acceptance stops further automatic movement.</td><td><span class="tag c">Committed</span></td></tr>
+  <tr><td>FR-LEAD-06</td><td>When no later active target exists, the lead becomes Exhausted and stays visible to Platform Admin with its history.</td><td><span class="tag e">Elaborated</span></td></tr>
+  <tr><td>FR-LEAD-07</td><td>If Best Academy is missing or inactive, the enquiry is still stored as Queued. It is not given to priority 2 in Best Academy’s place.</td><td><span class="tag e">Elaborated</span></td></tr>
+  <tr><td>FR-LEAD-08</td><td>Platform Admin can maintain routing rows: target, priority, interval, active flag, and contact.</td><td><span class="tag c">Committed</span></td></tr>
+  <tr><td>FR-LEAD-09</td><td>The system records lead history and a movement row for creation, queueing, each assignment, each escalation, acceptance, and exhaustion.</td><td><span class="tag c">Committed</span></td></tr>
+  <tr><td>FR-LEAD-10</td><td>Routing configuration is snapshotted onto the lead at the moment it first enters routing. Later edits to intervals or order do not rewrite leads already in flight.</td><td><span class="tag e">Elaborated</span></td></tr>
+  <tr><td>FR-ADM-01</td><td>Platform Admin can search, filter, sort, and paginate colleges, courses, scholarships, submissions, leads, and admin users.</td><td><span class="tag e">Elaborated</span></td></tr>
+  <tr><td>FR-ADM-02</td><td>Platform Admin can create and deactivate Platform Admin and Lead Operator users and set or reset their passwords.</td><td><span class="tag e">Elaborated</span></td></tr>
+  <tr><td>FR-ADM-03</td><td>The admin home shows counts of published colleges, draft colleges, queued leads, leads assigned now, accepted leads, and exhausted leads.</td><td><span class="tag e">Elaborated</span></td></tr>
+</table>
+
+<h1 class="sec" id="s14">14. Module Specifications</h1>
+<h2>14.1 Reference data</h2>
+<p>Platform Admin can add, rename, deactivate, and reorder reference values. Deactivate hides the value from new data entry. Existing colleges keep the historical value on display.</p>
+<table>
+  <tr><th>List</th><th>Used by</th><th>Phase 1 seed</th></tr>
+  <tr><td>Country, State, District, City</td><td>College location, student location, filters</td><td>Client-supplied. Country may default to India once confirmed.</td></tr>
+  <tr><td>College type</td><td>College record, filters, student preference</td><td>None until the client supplies values.</td></tr>
+  <tr><td>Ownership type</td><td>College record and student government/private preference</td><td>Minimum proposed values: Government, Private. Admin can add more.</td></tr>
+  <tr><td>Course category</td><td>Course and student preference</td><td>Client-supplied.</td></tr>
+  <tr><td>Study level</td><td>Course and student preference</td><td>Undergraduate, Postgraduate, Diploma, Other.</td></tr>
+  <tr><td>Study mode</td><td>Course and student preference</td><td>Proposed: Full-time, Part-time, Online, Distance, Hybrid.</td></tr>
+  <tr><td>Student category</td><td>Student form, scholarship eligibility, category-wise fees</td><td>Client-supplied.</td></tr>
+  <tr><td>Fee component</td><td>Fees</td><td>Tuition, Admission, Hostel, Other, Additional charge.</td></tr>
+  <tr><td>Fee frequency</td><td>Fees</td><td>Annual, Semester, One-time, Monthly, Total program.</td></tr>
+  <tr><td>Scholarship type</td><td>Scholarship</td><td>Client-supplied.</td></tr>
+  <tr><td>Facility</td><td>Facilities</td><td>The twelve facilities named in the source, listed in Section 18.</td></tr>
+  <tr><td>University</td><td>College affiliation display</td><td>Admin-maintained names. Optional on the college.</td></tr>
+</table>
+
+<h2>14.2 College Master</h2>
+<p>The admin college editor is one record with sections, not separate unrelated products: Profile, Location, Media, Courses, Admission, Fees, Scholarships, Facilities, Placement, Publication. Saving one section must not discard unsaved work in another section without a warning.</p>
+<p>Courses, fee rows, scholarships, specializations, and gallery items are added as repeating rows. Admission, facilities, and placement are single blocks on the college.</p>
+<h2>14.3 Student requirement form</h2>
+<p>The form is one flow with a progress indicator and these steps, in order: Basic details, Academics, Course preference, College preference, Budget and scholarship, Review and consent. The student can move back without losing entries. Partial progress is kept in the browser only. Nothing is a lead until submit of this form or of an enquiry.</p>
+<p>On submit, the API stores the submission, generates the recommendation set, and shows the shortlist. Leaving the page does not delete the stored submission. Phase 1 does not give the student a login to return to it later. The on-screen result remains available via a submission reference for the rest of that browser session. <span class="tag p">Proposed</span>: the result URL contains an unguessable token valid for 72 hours so a refresh does not lose the shortlist. OQ-51.</p>
+<h2>14.4 Recommendation</h2>
+<p>Specified in Section 22. The public shortlist does not show the numeric score. It shows plain-language reasons, such as course match, location, fee within the stated maximum, and scholarship available. Platform Admin can see the score and reasons when opening the submission.</p>
+<h2>14.5 Enquiry</h2>
+<p>Enquiry from a profile concerns that college. Enquiry from a shortlist lets the student select one or more colleges in that set. The lead stores those colleges as interests. Routing does not send the lead to those colleges first.</p>
+<p>The enquiry screen states, in plain language, that the request is received by the platform’s counselling desk and will be handled according to the platform’s response order. It must not say “your message has been sent to [selected college]” unless OQ-02 is answered by changing the business rule.</p>
+<h2>14.6 Lead desk</h2>
+<p>Specified in Sections 16 and 23.</p>
+
+<h1 class="sec" id="s15">15. Frontend Requirements</h1>
+<h2>15.1 Public information architecture</h2>
+<table>
+  <tr><th>Screen</th><th>Purpose</th><th>Primary actions</th></tr>
+  <tr><td>Home</td><td>Entry to discovery and to the requirement form</td><td>Search, start requirement form, browse colleges</td></tr>
+  <tr><td>College listing</td><td>Find published colleges</td><td>Search, filter, sort, paginate, open profile</td></tr>
+  <tr><td>College profile</td><td>Full published record</td><td>Move between sections, enquire</td></tr>
+  <tr><td>Requirement form</td><td>Collect preferences</td><td>Next, back, submit</td></tr>
+  <tr><td>Recommendations</td><td>Show the shortlist for one submission</td><td>Open college, select colleges, enquire</td></tr>
+  <tr><td>Enquiry</td><td>Create a lead</td><td>Submit, see reference</td></tr>
+  <tr><td>Enquiry confirmation</td><td>Prove the lead was stored</td><td>Reference number, return to colleges</td></tr>
+  <tr><td>Not found and empty results</td><td>Explain missing colleges or no matches</td><td>Clear filters, edit requirements, browse</td></tr>
+</table>
+<h2>15.2 College listing card</h2>
+<p>Each card shows cover image or placeholder, display name, short name if any, city and state, college type, ownership, NAAC grade if present, NIRF rank if present, a scholarship badge if the college has at least one active scholarship, and the lowest active course total estimated fee if any fee exists. Cards do not show student leads or admin notes.</p>
+<h2>15.3 College profile sections</h2>
+<p>The profile follows the source structure. Empty optional sections are omitted or marked “Not provided”; they are not filled with sample claims.</p>
+<ol>
+  <li><strong>Overview.</strong> Name, official name, short name, logo, gallery, location line, type, ownership, established year, affiliation, university, accreditation, recognition, NAAC, NIRF, website, public phone, public email, description, about.</li>
+  <li><strong>Courses.</strong> Active courses only. For each: name, category, type, study level, duration, mode, specializations, eligibility, required qualification, required subjects, entrance exam, admission process, intake, description, and a link to that course’s fees.</li>
+  <li><strong>Fees.</strong> Course-wise components, category where set, frequency, and total estimated fee. Hostel and other components appear in that breakdown.</li>
+  <li><strong>Scholarships.</strong> Active scholarships. Name, type, description, eligibility fields that were filled, benefit, dates, process, documents, provider, official link, terms, and the admin-authored student-experience note.</li>
+  <li><strong>Facilities.</strong> Only facilities marked Available or Not available. “Not provided” is omitted on the public page so an unknown facility is not presented as a denial.</li>
+  <li><strong>Placement.</strong> Whatever placement fields were filled, including recruiters and packages. If the statistics year is present, show it next to the figures.</li>
+  <li><strong>Admission.</strong> Process, eligibility, entrance exam, application process, dates, selection, counselling, documents, contact. If the application end date is before today in Asia/Kolkata, show “Application window ended” beside the dates. The record still remains visible.</li>
+  <li><strong>Location.</strong> Address, area, district, city, state, PIN, nearby city, campus note, coordinates if present, map or outbound map link.</li>
+  <li><strong>Enquiry.</strong> A persistent call to action.</li>
+</ol>
+<h2>15.4 Responsive behaviour</h2>
+<p>Public and admin screens are usable at 360px width and at desktop width. Listing filters on a narrow screen sit in a panel that can be opened and closed. Tables in admin scroll horizontally rather than overflowing the page. Touch targets for primary actions are large enough to use without a mouse.</p>
+<h2>15.5 Feedback</h2>
+<p>Field errors appear beside the field. Successful save and successful enquiry use a clear confirmation. A failed request leaves the user’s typed data in place and offers a retry. Toasts may be used for short admin confirmations. A toast is not the only confirmation of an enquiry; the confirmation screen and reference number are mandatory.</p>
+
+<h1 class="sec" id="s16">16. Admin Panel Requirements</h1>
+<table>
+  <caption>16.1 Admin modules and the actions each one actually needs</caption>
+  <tr><th>Module</th><th>Actions</th><th>Notes</th></tr>
+  <tr><td>Sign in</td><td>Login, logout, change own password</td><td>No public registration. Failed login does not reveal which field was wrong.</td></tr>
+  <tr><td>Dashboard</td><td>View counts, open queues</td><td>Counts only. No charts in Phase 1.</td></tr>
+  <tr><td>Reference data</td><td>Create, rename, deactivate, reorder, search</td><td>No hard delete if the value is in use. Platform Admin only.</td></tr>
+  <tr><td>Colleges</td><td>Create, view, edit, publish, unpublish, archive, search, filter, sort, paginate</td><td>Archive is blocked from the public site. No bulk publish in Phase 1.</td></tr>
+  <tr><td>College editor</td><td>Section save, add and remove child rows, upload media</td><td>Publish checklist runs only on publish.</td></tr>
+  <tr><td>Requirement submissions</td><td>List, search, open read-only, see recommendation reasons</td><td>Platform Admin. No edit of the student’s answers.</td></tr>
+  <tr><td>Routing setup</td><td>Create, edit, activate, deactivate, reorder except Best Academy’s lock on priority 1</td><td>Cannot save a configuration that places another active target at priority 1 while the Best Academy rule is on.</td></tr>
+  <tr><td>Leads</td><td>List, filter by status and current target, open, accept, read history</td><td>Lead Operator list is limited to leads currently assigned to that operator’s target.</td></tr>
+  <tr><td>Admin users</td><td>Create, deactivate, reset password, link Lead Operator to one target</td><td>The last active Platform Admin cannot be deactivated.</td></tr>
+  <tr><td>Notifications</td><td>List own in-app notifications, mark read</td><td>Each assignment creates one notification for users of that target and for Platform Admins.</td></tr>
+</table>
+<p>Admin list screens share one pattern: keyword search, relevant filters, one sort at a time, page size 20, and a total count. Export to a spreadsheet is not in Phase 1.</p>
+<p>College filters for admin: status, state, city, college type, ownership, has scholarship, updated date. Lead filters: status, current target, created date, reference, student mobile.</p>
+
+<h1 class="sec" id="s17">17. Backend and API Requirements</h1>
+<p>The API is the authority for validation, publication, recommendation, and routing. Endpoints below are the required capabilities. Naming may follow Laravel conventions during build, but the behaviour may not be weakened.</p>
+<table>
+  <caption>17.1 Public API</caption>
+  <tr><th>Capability</th><th>Behaviour</th></tr>
+  <tr><td>List colleges</td><td>Published only. Query parameters for search, filters, sort, and page. Returns card fields only.</td></tr>
+  <tr><td>Get college by slug</td><td>Published only. Returns the public profile. Draft fields and internal notes are absent.</td></tr>
+  <tr><td>List reference values needed by the public form</td><td>Active values only.</td></tr>
+  <tr><td>Submit requirement form</td><td>Validates, stores, scores, returns submission token and shortlist.</td></tr>
+  <tr><td>Get recommendation by token</td><td>Returns that set until the token expires. No index of other students.</td></tr>
+  <tr><td>Submit enquiry</td><td>Validates, stores the lead, attempts routing, returns the public reference. Response does not include the assignee’s private contact details beyond what the confirmation copy requires.</td></tr>
+</table>
+<table>
+  <caption>17.2 Admin API</caption>
+  <tr><th>Capability</th><th>Behaviour</th></tr>
+  <tr><td>Auth</td><td>Sanctum session or token for admin users. Inactive users cannot sign in.</td></tr>
+  <tr><td>College CRUD and publication</td><td>Platform Admin. Archive and publish enforce Section 20 and Section 21.</td></tr>
+  <tr><td>Child collections</td><td>Courses, specializations, fees, scholarships, media, admission, facilities, placement.</td></tr>
+  <tr><td>Reference data</td><td>Platform Admin.</td></tr>
+  <tr><td>Routing configuration</td><td>Platform Admin. Server rejects a save that violates Best Academy priority.</td></tr>
+  <tr><td>Submissions and leads</td><td>Role-filtered as in Section 9.</td></tr>
+  <tr><td>Accept lead</td><td>Allowed only for the current assignee’s operator or a Platform Admin, and only when status is Assigned. Concurrent clicks result in one acceptance.</td></tr>
+  <tr><td>Admin users</td><td>Platform Admin.</td></tr>
+</table>
+<p>List endpoints are paginated. Write endpoints return the stored record or a field-level error list. The server stores timestamps in UTC and converts the business interval using Asia/Kolkata when displaying times to users.</p>
+
+<h1 class="sec" id="s18">18. Data Requirements</h1>
+<p>Required means the record cannot be saved without it. Required to publish means a draft may omit it, but Publish is blocked until it is present. Unless stated, text fields are Unicode and leading and trailing spaces are trimmed.</p>
+
+<h2>18.1 College</h2>
+<table>
+  <tr><th>Field</th><th>Required</th><th>Rules</th></tr>
+  <tr><td>Display name</td><td>Save</td><td>2–200 characters. Not unique by itself, because two campuses could share a name. Uniqueness is not forced on name.</td></tr>
+  <tr><td>Official name</td><td>Publish</td><td>2–300 characters.</td></tr>
+  <tr><td>Short name</td><td>No</td><td>Up to 40 characters.</td></tr>
+  <tr><td>Slug</td><td>System</td><td>Unique, generated from display name, editable by Platform Admin before or after publish, unique at save.</td></tr>
+  <tr><td>Logo and gallery</td><td>No</td><td>See media rules.</td></tr>
+  <tr><td>Description</td><td>Publish</td><td>Up to 1,000 characters.</td></tr>
+  <tr><td>About</td><td>No</td><td>Up to 10,000 characters.</td></tr>
+  <tr><td>Established year</td><td>No</td><td>Four-digit year, 1800 through the current year.</td></tr>
+  <tr><td>College type</td><td>Publish</td><td>Active reference value.</td></tr>
+  <tr><td>Ownership type</td><td>Publish</td><td>Active reference value.</td></tr>
+  <tr><td>Affiliation</td><td>No</td><td>Up to 300 characters.</td></tr>
+  <tr><td>University</td><td>No</td><td>Reference value.</td></tr>
+  <tr><td>Accreditation</td><td>No</td><td>Up to 500 characters.</td></tr>
+  <tr><td>Recognition</td><td>No</td><td>Up to 500 characters.</td></tr>
+  <tr><td>NAAC grade</td><td>No</td><td>Blank or one active grade value.</td></tr>
+  <tr><td>NIRF ranking</td><td>No</td><td>Positive integer, 1–10,000, plus an optional ranking year.</td></tr>
+  <tr><td>Website</td><td>No</td><td>Absolute http or https URL, up to 500 characters.</td></tr>
+  <tr><td>Public email</td><td>No</td><td>Email format.</td></tr>
+  <tr><td>Public phone</td><td>No</td><td>6–15 digits, optional leading plus.</td></tr>
+  <tr><td>Status</td><td>System</td><td>Draft, Published, Unpublished, Archived.</td></tr>
+  <tr><td>Created by, updated by, timestamps</td><td>System</td><td>Set by the API.</td></tr>
+</table>
+
+<h2>18.2 Location — one primary location per college</h2>
+<table>
+  <tr><th>Field</th><th>Required</th><th>Rules</th></tr>
+  <tr><td>Country, State, City</td><td>Publish</td><td>Reference values. City must belong to the selected state.</td></tr>
+  <tr><td>District</td><td>No</td><td>If set, must belong to the selected state.</td></tr>
+  <tr><td>Area / locality</td><td>No</td><td>Up to 200 characters.</td></tr>
+  <tr><td>Address</td><td>Publish</td><td>Up to 500 characters.</td></tr>
+  <tr><td>PIN code</td><td>Publish</td><td>Six digits under assumption A-01.</td></tr>
+  <tr><td>Latitude, longitude</td><td>No</td><td>Both or neither. Latitude −90 to 90. Longitude −180 to 180. Up to 6 decimal places.</td></tr>
+  <tr><td>Campus location note</td><td>No</td><td>Up to 300 characters.</td></tr>
+  <tr><td>Nearby city</td><td>No</td><td>Reference city or a short text note, one of the two. Proposed: short text, up to 120 characters, so it does not have to be a catalogue city.</td></tr>
+</table>
+
+<h2>18.3 Media</h2>
+<table>
+  <tr><th>Rule</th><th>Value</th></tr>
+  <tr><td>Logo</td><td>One file. PNG, JPG, or WEBP. Maximum 2 MB. Recommended square image.</td></tr>
+  <tr><td>Gallery</td><td>Up to 12 images. PNG, JPG, or WEBP. Maximum 5 MB each. Caption optional, 150 characters. Sort order. One cover.</td></tr>
+  <tr><td>Storage name</td><td>Server-generated. The original file name is not used as the public path.</td></tr>
+</table>
+
+<h2>18.4 Course</h2>
+<table>
+  <tr><th>Field</th><th>Required</th><th>Rules</th></tr>
+  <tr><td>Name</td><td>Save</td><td>2–200 characters. Unique among courses of the same college, case-insensitive.</td></tr>
+  <tr><td>Category</td><td>Save</td><td>Active reference value.</td></tr>
+  <tr><td>Course type</td><td>No</td><td>Up to 80 characters. Examples the client may use later include Regular or Honours. The SRS does not invent a fixed list.</td></tr>
+  <tr><td>Study level</td><td>Save</td><td>Undergraduate, Postgraduate, Diploma, or Other.</td></tr>
+  <tr><td>Duration</td><td>Publish of parent, for at least one active course</td><td>Number greater than 0 and up to 12, unit Years or Months.</td></tr>
+  <tr><td>Study mode</td><td>Save</td><td>Active reference value.</td></tr>
+  <tr><td>Specializations</td><td>No</td><td>Repeating names, each 2–150 characters, unique within the course.</td></tr>
+  <tr><td>Eligibility criteria</td><td>No</td><td>Up to 3,000 characters. Shown on the profile when present.</td></tr>
+  <tr><td>Required qualification</td><td>No</td><td>Up to 1,000 characters.</td></tr>
+  <tr><td>Required subjects</td><td>No</td><td>Up to 1,000 characters.</td></tr>
+  <tr><td>Entrance exam required</td><td>Save</td><td>Yes or No, default No.</td></tr>
+  <tr><td>Entrance exam name</td><td>If required is Yes</td><td>Up to 150 characters.</td></tr>
+  <tr><td>Admission process</td><td>No</td><td>Course-level note, up to 3,000 characters. Does not replace the college admission block.</td></tr>
+  <tr><td>Intake</td><td>No</td><td>Integer 1–100,000.</td></tr>
+  <tr><td>Status</td><td>Save</td><td>Active or Inactive. Default Active.</td></tr>
+  <tr><td>Description</td><td>No</td><td>Up to 5,000 characters.</td></tr>
+</table>
+
+<h2>18.5 Admission block</h2>
+<p>All fields are optional at save. Dates are calendar dates. Application end, if both application dates exist, is on or after application start. Admission deadline, if both admission dates exist, is on or after admission start.</p>
+<p>Fields: admission process, admission eligibility, entrance exam, application process, application start, application end, admission start, admission deadline, selection process, counselling process, required documents, contact name, contact email, contact phone.</p>
+
+<h2>18.6 Fees</h2>
+<table>
+  <tr><th>Field</th><th>Required</th><th>Rules</th></tr>
+  <tr><td>Course</td><td>Save</td><td>A course of the same college.</td></tr>
+  <tr><td>Component</td><td>Save</td><td>Tuition, Admission, Hostel, Other, or Additional charge.</td></tr>
+  <tr><td>Student category</td><td>No</td><td>Blank means the amount applies generally. If set, it is an active student category.</td></tr>
+  <tr><td>Amount</td><td>Save</td><td>Rupees, zero or positive, up to two decimal places, maximum 99,999,999.99.</td></tr>
+  <tr><td>Frequency</td><td>Save</td><td>Active frequency value.</td></tr>
+  <tr><td>Notes</td><td>No</td><td>Up to 500 characters.</td></tr>
+  <tr><td>Total estimated fee on the course</td><td>No</td><td>Same numeric rules. This is the figure used for budget comparison and cards. It is entered, not computed.</td></tr>
+</table>
+<p>The same course, component, category, and frequency cannot be stored twice. Category-wise rows may exist beside a general row. The public page shows general rows and, when a viewer’s category is not known, also shows category-specific rows with their category label. It does not hide category fees.</p>
+
+<h2>18.7 Scholarship</h2>
+<table>
+  <tr><th>Field</th><th>Required</th><th>Rules</th></tr>
+  <tr><td>College</td><td>Save</td><td>Parent college.</td></tr>
+  <tr><td>Course</td><td>No</td><td>Blank means the scholarship is college-wide. If set, the course belongs to the same college.</td></tr>
+  <tr><td>Name</td><td>Save</td><td>2–200 characters.</td></tr>
+  <tr><td>Type</td><td>Save</td><td>Active scholarship type.</td></tr>
+  <tr><td>Description</td><td>No</td><td>Up to 5,000 characters.</td></tr>
+  <tr><td>Eligibility criteria</td><td>No</td><td>Up to 3,000 characters. General narrative.</td></tr>
+  <tr><td>Academic eligibility</td><td>No</td><td>Up to 1,000 characters.</td></tr>
+  <tr><td>Income eligibility</td><td>No</td><td>Narrative up to 1,000 characters, plus optional maximum annual family income as a rupee amount.</td></tr>
+  <tr><td>Category eligibility</td><td>No</td><td>Zero or more student categories.</td></tr>
+  <tr><td>State / domicile eligibility</td><td>No</td><td>Zero or more states.</td></tr>
+  <tr><td>Gender eligibility</td><td>No</td><td>Blank means not restricted. Otherwise a value from the confirmed gender list. Until OQ-52 is answered, the control is omitted rather than given an invented legal list.</td></tr>
+  <tr><td>Benefit description</td><td>No</td><td>Up to 1,000 characters.</td></tr>
+  <tr><td>Benefit amount</td><td>No</td><td>Rupee amount, zero or positive.</td></tr>
+  <tr><td>Fee waiver percentage</td><td>No</td><td>0 through 100, up to two decimal places.</td></tr>
+  <tr><td>Application start and end</td><td>No</td><td>End is on or after start when both exist.</td></tr>
+  <tr><td>Application process</td><td>No</td><td>Up to 3,000 characters.</td></tr>
+  <tr><td>Required documents</td><td>No</td><td>Up to 3,000 characters.</td></tr>
+  <tr><td>Provider</td><td>No</td><td>Up to 200 characters.</td></tr>
+  <tr><td>Official link</td><td>No</td><td>Absolute http or https URL.</td></tr>
+  <tr><td>Status</td><td>Save</td><td>Active or Inactive. Default Active.</td></tr>
+  <tr><td>Terms</td><td>No</td><td>Up to 5,000 characters.</td></tr>
+  <tr><td>Student experience note</td><td>No</td><td>Admin-authored note up to 3,000 characters. Not a student-submitted review.</td></tr>
+</table>
+<p>A scholarship is publicly visible when its college is Published, its status is Active, and its course is blank or Active. If the application end date is past, the scholarship remains visible with the label “Application window ended” unless an admin has set it Inactive.</p>
+
+<h2>18.8 Facilities</h2>
+<p>For each of Hostel, Library, Laboratory, Transportation, Sports facilities, Cafeteria, Medical facilities, Campus facilities, Internet / Wi-Fi, Placement cell, Clubs / activities, and Other: availability is Available, Not available, or Not provided. A note of up to 500 characters is optional. Other also has a short label of up to 120 characters when availability is not “Not provided”.</p>
+
+<h2>18.9 Placement</h2>
+<table>
+  <tr><th>Field</th><th>Required</th><th>Rules</th></tr>
+  <tr><td>Placement availability</td><td>No</td><td>Yes, No, or Not provided. Default Not provided.</td></tr>
+  <tr><td>Placement cell information</td><td>No</td><td>Up to 3,000 characters.</td></tr>
+  <tr><td>Placement support</td><td>No</td><td>Up to 3,000 characters.</td></tr>
+  <tr><td>Recruiters</td><td>No</td><td>Repeating names, each up to 150 characters, or one structured list entered row by row. Not a single unmanaged paragraph if more than one recruiter is entered.</td></tr>
+  <tr><td>Statistics narrative</td><td>No</td><td>Up to 3,000 characters.</td></tr>
+  <tr><td>Average package, highest package</td><td>No</td><td>Rupee amounts, zero or positive. Optional statistics year, four digits.</td></tr>
+  <tr><td>Internship support, career support, industry connections</td><td>No</td><td>Each up to 3,000 characters.</td></tr>
+</table>
+
+<h2>18.10 Student requirement submission</h2>
+<table>
+  <tr><th>Group</th><th>Field</th><th>Required to submit</th><th>Rules</th></tr>
+  <tr><td>Basic</td><td>Name</td><td>Yes</td><td>2–120 characters.</td></tr>
+  <tr><td>Basic</td><td>Mobile</td><td>Yes</td><td>Ten digits under A-01. Stored normalized.</td></tr>
+  <tr><td>Basic</td><td>Email</td><td>Yes</td><td>Email format, up to 180 characters.</td></tr>
+  <tr><td>Basic</td><td>State, City</td><td>Yes</td><td>Reference values. City belongs to state.</td></tr>
+  <tr><td>Basic</td><td>Location note</td><td>No</td><td>Up to 200 characters.</td></tr>
+  <tr><td>Academic</td><td>Current education level</td><td>Yes</td><td>Active study level, plus “Other / completing school” if the client confirms school stages. Until then, study level list plus a free note is not added. OQ-53.</td></tr>
+  <tr><td>Academic</td><td>10th marks, 12th or expected marks</td><td>No</td><td>0–100, up to two decimals, if A-05 is confirmed.</td></tr>
+  <tr><td>Academic</td><td>Subjects, stream, academic interests</td><td>No</td><td>Each up to 300 characters. Stream may be a reference list once the client supplies it.</td></tr>
+  <tr><td>Academic</td><td>Entrance exam name</td><td>No</td><td>Up to 150 characters.</td></tr>
+  <tr><td>Academic</td><td>Score and rank</td><td>No</td><td>Score 0–100 or a positive exam-specific number up to 1,000,000. Rank positive integer. Both optional. The form labels the unit the student should use. OQ-54 if exams are not percentage-based.</td></tr>
+  <tr><td>Academic</td><td>Category</td><td>No</td><td>Active student category. This same value is used for scholarship category. The form does not ask for category twice.</td></tr>
+  <tr><td>Course</td><td>Interested course</td><td>Yes</td><td>Up to 200 characters. The student may type a course name.</td></tr>
+  <tr><td>Course</td><td>Course category</td><td>Yes</td><td>Active category.</td></tr>
+  <tr><td>Course</td><td>Preferred specialization, career interest</td><td>No</td><td>Each up to 200 characters.</td></tr>
+  <tr><td>Course</td><td>Preferred study level</td><td>Yes</td><td>Active study level.</td></tr>
+  <tr><td>Course</td><td>Duration preference</td><td>No</td><td>Up to 80 characters.</td></tr>
+  <tr><td>Course</td><td>Preferred education mode</td><td>No</td><td>Active study mode or “No preference”.</td></tr>
+  <tr><td>College</td><td>Preferred state, preferred city</td><td>No</td><td>Reference values. City belongs to state.</td></tr>
+  <tr><td>College</td><td>College type</td><td>No</td><td>Active type or “No preference”. The source also says “college size / type, where applicable”. Size is not a field until OQ-56 defines the measure.</td></tr>
+  <tr><td>College</td><td>Government / private preference</td><td>No</td><td>Ownership value or “No preference”.</td></tr>
+  <tr><td>College</td><td>Hostel requirement, transportation requirement</td><td>No</td><td>Required, Not required, or No preference. Default No preference.</td></tr>
+  <tr><td>College</td><td>Campus facilities of interest</td><td>No</td><td>Zero or more facilities from the defined list.</td></tr>
+  <tr><td>College</td><td>Placement expectations, other preferences</td><td>No</td><td>Each up to 1,000 characters.</td></tr>
+  <tr><td>Budget</td><td>Preferred budget, maximum course fee, hostel budget, overall education budget</td><td>No</td><td>Rupee amounts, zero or positive. Maximum course fee is the comparison field.</td></tr>
+  <tr><td>Scholarship</td><td>Do you require a scholarship?</td><td>Yes</td><td>Yes or No.</td></tr>
+  <tr><td>Scholarship</td><td>Financial assistance requirement</td><td>Yes</td><td>Yes or No.</td></tr>
+  <tr><td>Scholarship</td><td>Scholarship preference, expectations</td><td>No</td><td>Each up to 1,000 characters.</td></tr>
+  <tr><td>Scholarship</td><td>Income-related information</td><td>No</td><td>Optional annual family income amount, plus a note up to 500 characters.</td></tr>
+  <tr><td>Consent</td><td>Contact consent</td><td>Yes</td><td>Must be checked. Consent text is client-supplied. A placeholder is used only in non-production.</td></tr>
+</table>
+<p>The stored submission is immutable after submit. It also stores the recommendation model version, the time, and the resulting college identifiers.</p>
+
+<h2>18.11 Lead, routing target, and movement</h2>
+<table>
+  <tr><th>Entity</th><th>Important fields</th></tr>
+  <tr><td>Routing target</td><td>Name, type (Partner or College), optional college link, contact email, contact phone, priority (unique positive integer), interval minutes, active flag, Best Academy flag. Exactly one row may have the Best Academy flag. That row’s priority must be 1 whenever it is active.</td></tr>
+  <tr><td>Lead</td><td>Public reference <code>ENQ-YYYYMMDD-######</code>, source (profile or recommendation), optional submission id, contact snapshot, requirement snapshot if any, interested college ids, status, current target, assigned time, escalate-at time, accepted time, accepted by, routing snapshot, timestamps.</td></tr>
+  <tr><td>Lead movement</td><td>Lead, from status, to status, from target, to target, reason, actor type (system or admin user), actor id, time.</td></tr>
+  <tr><td>Admin user</td><td>Name, email unique, password hash, role, optional routing target, active flag, timestamps.</td></tr>
+  <tr><td>Notification</td><td>Recipient user, lead, event, channel, delivery status, time.</td></tr>
+</table>
+<p>Snapshots copy the student answers and the college display names at enquiry time. Later edits to a college do not change the lead’s historical snapshot. The live profile link still opens the current public page if the college remains published.</p>
+
+<h2>18.12 Relationships</h2>
+<ul>
+  <li>College has one location, many media, many courses, one admission block, many scholarships, one facilities block, one placement block.</li>
+  <li>Course has many specializations and many fee components, and one total estimated fee.</li>
+  <li>Scholarship belongs to one college and optionally one course.</li>
+  <li>Requirement submission has one recommendation set of many items.</li>
+  <li>Lead belongs to zero or one submission and to one or more interested colleges.</li>
+  <li>Lead has many movements.</li>
+  <li>Lead Operator belongs to one routing target.</li>
+</ul>
+
+<h1 class="sec" id="s19">19. Business Rules</h1>
+<table>
+  <tr><th>ID</th><th>Rule</th></tr>
+  <tr><td>BR-01</td><td>Best Academy, when active, is the first and only initial assignee of every lead that enters routing.</td></tr>
+  <tr><td>BR-02</td><td>If acceptance has not been recorded when the current target’s interval elapses, the lead moves to the next active target in the snapshot order.</td></tr>
+  <tr><td>BR-03</td><td>The interval is configuration, not a constant in code. A new routing row defaults to 30 minutes.</td></tr>
+  <tr><td>BR-04</td><td>Inactive targets are skipped. They do not consume an interval.</td></tr>
+  <tr><td>BR-05</td><td>Acceptance is final for Phase 1 routing. The lead does not move again.</td></tr>
+  <tr><td>BR-06</td><td>The system never assigns a new lead to priority 2 because Best Academy is inactive. The lead stays Queued until a Platform Admin activates Best Academy and an explicit “release queued leads” run assigns them to Best Academy. <span class="tag e">Elaborated</span> so a configuration error cannot break BR-01. Queued leads are released in creation order.</td></tr>
+  <tr><td>BR-07</td><td>College catalogue data is structured in the entities in Section 18. A scholarship is not only a paragraph on the college.</td></tr>
+  <tr><td>BR-08</td><td>A recommendation is computed only from the student’s stored submission and from Published colleges with Active courses.</td></tr>
+  <tr><td>BR-09</td><td>Where a recommended college has a visible scholarship, the shortlist and the profile show that scholarship. The shortlist does not claim a scholarship that is Inactive or whose course is Inactive.</td></tr>
+  <tr><td>BR-10</td><td>Interested colleges on a lead are informational for the assignee. They do not replace priority 1.</td></tr>
+  <tr><td>BR-11</td><td>Configuration changes apply to leads that enter routing after the change is saved. In-flight leads keep their snapshot.</td></tr>
+  <tr><td>BR-12</td><td>The 40-working-day development window starts only after the Section 34 gate. It is not started by issue of this draft.</td></tr>
+  <tr><td>BR-13</td><td>Work outside Section 5.1 is a change request. It is not absorbed into the Phase 1 window or the stated development cost.</td></tr>
+  <tr><td>BR-14</td><td>Public pages never list Draft, Unpublished, or Archived colleges.</td></tr>
+  <tr><td>BR-15</td><td>The last active Platform Admin account cannot be deactivated.</td></tr>
+  <tr><td>BR-16</td><td>A college that is referenced by a lead snapshot can be unpublished or archived. The snapshot remains. The public link shows not-found if the college is no longer published.</td></tr>
+  <tr><td>BR-17</td><td>Hard delete of a college, course, or scholarship is not available in Phase 1. Removal from the public site is Unpublish or Inactive or Archive.</td></tr>
+  <tr><td>BR-18</td><td>Student personal data is collected for discovery and enquiry contact. It is visible only to Platform Admins and to the Lead Operator of the current assignee.</td></tr>
+  <tr><td>BR-19</td><td>The routing job must not move a lead early. If the scheduler is late, Best Academy keeps the lead until the job runs, and the movement time recorded is the actual run time.</td></tr>
+  <tr><td>BR-20</td><td>Two Accept actions at the same moment produce one Accepted lead. The second caller receives a conflict response and the updated status.</td></tr>
+</table>
+
+<h1 class="sec" id="s20">20. Validation Rules</h1>
+<h2>20.1 Publish checklist</h2>
+<p>Publish is rejected, with a list of missing items, unless all of the following are true.</p>
+<ul>
+  <li>Display name, official name, description, college type, and ownership are present.</li>
+  <li>State, city, address, and PIN code are present.</li>
+  <li>At least one Active course exists with name, category, study level, study mode, and duration.</li>
+</ul>
+<p>Scholarships, fees, placement, logo, gallery, NAAC, NIRF, and admission dates are not required to publish. Their absence is shown as not provided. This avoids blocking a college whose scholarship data is genuinely none, while still meeting the source rule that scholarship records are structured when they exist.</p>
+<h2>20.2 Cross-field rules</h2>
+<ul>
+  <li>End dates are on or after start dates wherever both are entered.</li>
+  <li>Entrance exam name is required on a course only when entrance exam required is Yes.</li>
+  <li>Latitude and longitude are saved as a pair.</li>
+  <li>A Lead Operator must be linked to an active routing target.</li>
+  <li>Priority numbers are unique. Best Academy’s active row is priority 1.</li>
+  <li>Interval is a whole number of minutes from 5 to 10,080. <span class="tag p">Proposed</span> bounds, OQ-24. Default 30.</li>
+  <li>Enquiry requires consent, name, mobile, email, and at least one published college.</li>
+  <li>A second enquiry with the same mobile number and the same set of college ids is rejected for 30 minutes after the first success, with the existing reference returned. A different college set is a new lead.</li>
+</ul>
+<h2>20.3 Client and server</h2>
+<p>Yup checks the form before submit. The API repeats every rule. Client checks are a convenience, not the control.</p>
+
+<h1 class="sec" id="s21">21. Workflows and State Transitions</h1>
+<h2>21.1 College status</h2>
+<table>
+  <tr><th>From</th><th>Action</th><th>To</th><th>Who</th></tr>
+  <tr><td>None</td><td>Create</td><td>Draft</td><td>Platform Admin</td></tr>
+  <tr><td>Draft</td><td>Publish, checklist passes</td><td>Published</td><td>Platform Admin</td></tr>
+  <tr><td>Draft</td><td>Archive</td><td>Archived</td><td>Platform Admin</td></tr>
+  <tr><td>Published</td><td>Unpublish</td><td>Unpublished</td><td>Platform Admin</td></tr>
+  <tr><td>Unpublished</td><td>Publish, checklist passes</td><td>Published</td><td>Platform Admin</td></tr>
+  <tr><td>Published or Unpublished</td><td>Archive</td><td>Archived</td><td>Platform Admin</td></tr>
+  <tr><td>Archived</td><td>Restore to draft</td><td>Draft</td><td>Platform Admin</td></tr>
+</table>
+<p>Edits to a Published college are stored on the live record when that section is saved. There is no second draft copy. <span class="tag p">Proposed</span> OQ-40.</p>
+<h2>21.2 Course and scholarship</h2>
+<p>Active and Inactive only. Inactive is reversible. No separate approval workflow exists in the source, so none is added.</p>
+<h2>21.3 Lead status</h2>
+<table>
+  <tr><th>Status</th><th>Meaning</th><th>Next statuses</th></tr>
+  <tr><td>Queued</td><td>Enquiry stored. Best Academy is not an active priority-1 target, so routing has not started.</td><td>Assigned, only to Best Academy, when queued leads are released.</td></tr>
+  <tr><td>Assigned</td><td>A current target has the lead. The escalate-at time is set.</td><td>Accepted by action. Assigned to the next target by timeout. Exhausted if no next target.</td></tr>
+  <tr><td>Accepted</td><td>The current assignee or a Platform Admin accepted. Terminal for Phase 1.</td><td>None.</td></tr>
+  <tr><td>Exhausted</td><td>Every active snapshot target was offered and none accepted. Terminal for Phase 1.</td><td>None.</td></tr>
+</table>
+<p>There is no Rejected status in the committed workflow. There is no Closed status separate from Accepted and Exhausted. Adding counselling stages is a change request, OQ-07.</p>
+
+<h1 class="sec" id="s22">22. Recommendation Model</h1>
+<div class="danger">
+  <strong>This section is proposed for sign-off.</strong> The source requires the system to use the student’s course, academic, eligibility, location, budget, college, and scholarship answers. It does not define ceilings, weights, or the empty-result rule. Do not treat the numbers below as approved until OQ-09, OQ-10, OQ-11, OQ-12, and OQ-13 are accepted or replaced. The matching service is built to this model only after that sign-off.
+</div>
+<h2>22.1 Candidate set</h2>
+<p>A candidate is a Published college with at least one Active course. Draft, unpublished, archived, and inactive courses are ignored.</p>
+<h2>22.2 Proposed gates</h2>
+<table>
+  <tr><th>Student input</th><th>Proposed effect</th></tr>
+  <tr><td>Preferred study level</td><td>Hard gate. The college must have an active course at that level.</td></tr>
+  <tr><td>Course category</td><td>Hard gate. The college must have an active course in that category.</td></tr>
+  <tr><td>Maximum course fee, when filled, and the course has a total estimated fee</td><td>Hard gate. Total estimated fee must be less than or equal to the maximum. Courses with no total estimated fee stay in the set and are labelled “Fee not available”. They do not fail the ceiling.</td></tr>
+  <tr><td>Location, hostel, transport, ownership, college type, scholarship required</td><td>Not hard gates in the proposed model. They change rank and they are explained on the card. Unknown facility data does not remove a college.</td></tr>
+</table>
+<h2>22.3 Proposed ranking</h2>
+<p>Among colleges that pass the gates, score the best active course that passes the gates. Show that course on the card and the count of other matching courses.</p>
+<table>
+  <tr><th>Signal</th><th>Points</th><th>How it is awarded</th></tr>
+  <tr><td>Course name</td><td>30</td><td>Full points if the interested-course text matches the course name or a specialization, case-insensitive, allowing a partial match of a word of at least four letters. Otherwise 0. Category is already a gate, so it is not scored again.</td></tr>
+  <tr><td>Study mode</td><td>10</td><td>Full points if the student chose a mode and the course mode matches. Full points if the student has no preference. Otherwise 0.</td></tr>
+  <tr><td>State</td><td>10</td><td>Full points if preferred state is empty or matches. Otherwise 0.</td></tr>
+  <tr><td>City</td><td>10</td><td>Full points if preferred city is empty or matches. Otherwise 0.</td></tr>
+  <tr><td>Budget fit</td><td>15</td><td>Full points if no maximum was given, or if the total estimated fee is within the maximum. 8 points if the fee is not available. 0 does not occur for a fee above the maximum because that course already failed the gate.</td></tr>
+  <tr><td>Scholarship</td><td>15</td><td>If the student answered No, award 15 and do not rank by scholarship. If Yes, award 15 when at least one visible scholarship is relevant, otherwise 0. Relevant means: college-wide or matching the chosen course, and not contradicted by a filled category, domicile state, or maximum income. Empty eligibility on the scholarship means it is treated as relevant.</td></tr>
+  <tr><td>Ownership and college type</td><td>5</td><td>Full points if each stated preference matches or was left as no preference. Split equally between the two preferences.</td></tr>
+  <tr><td>Hostel and transport</td><td>5</td><td>If the student marked Required, full points only when that facility is Available. If the student did not require it, full points.</td></tr>
+</table>
+<p>Maximum score is 100. The shortlist shows up to 20 colleges with a score of at least 40, highest score first. Ties are broken by scholarship relevance, then by name. If none reach 40, the result is empty. The student is told that no college met the stated level, course, and fee inputs, and is offered edit and browse. The system does not backfill the empty list with unrelated colleges.</p>
+<p>Academic marks, entrance rank, and eligibility paragraphs are stored and shown to the lead assignee. They are not an automatic eligibility decision in Phase 1, because the source does not define pass-mark formulas and eligibility text is unstructured. The profile still shows the college’s eligibility text so the student can judge it. Presenting a false “you are eligible” badge is out of scope.</p>
+<h2>22.4 Reproducibility</h2>
+<p>Each recommendation item stores college id, course id, score, the points breakdown, and the scholarship ids that were treated as relevant. QA can compare a fixture submission with that breakdown.</p>
+
+<h1 class="sec" id="s23">23. Lead Routing</h1>
+<h2>23.1 Configuration</h2>
+<ul>
+  <li>Platform Admin creates Best Academy as a routing target and marks it as the priority partner. The system forces priority 1.</li>
+  <li>Additional targets have priorities 2, 3, and so on.</li>
+  <li>Each row has contact email, contact phone, interval minutes, and active flag.</li>
+  <li>A row may link to a college, or it may be a partner with no college page. Best Academy does not need a public college page to receive leads.</li>
+  <li>Deactivating Best Academy does not delete history. It stops new routing and queues new enquiries under BR-06.</li>
+</ul>
+<h2>23.2 Creation timeline</h2>
+<p>This is the source example, stated as behaviour.</p>
+<table>
+  <tr><th>Time</th><th>Behaviour</th></tr>
+  <tr><td>00:00</td><td>Enquiry validates. Lead row is stored. Reference is issued. Student sees confirmation.</td></tr>
+  <tr><td>00:00, if Best Academy is active</td><td>Status becomes Assigned. Current target is Best Academy. Snapshot of the then-active ordered list and intervals is stored. Escalate-at is assigned-at plus Best Academy’s interval. In-app notification is created. Email is attempted if the gateway is configured.</td></tr>
+  <tr><td>00:00, if Best Academy is not active</td><td>Status stays Queued. No other listing is notified. Platform Admins are notified that routing is blocked.</td></tr>
+  <tr><td>During the interval</td><td>Best Academy’s Lead Operators can accept. No other operator sees the lead in their queue.</td></tr>
+  <tr><td>Interval elapsed without acceptance</td><td>The scheduler writes a movement with reason <code>interval_elapsed</code> and assigns the next active snapshot target. That row’s own interval starts. Notification goes to the new target.</td></tr>
+  <tr><td>Later intervals</td><td>The same move repeats.</td></tr>
+  <tr><td>Accept at any current assignment</td><td>Status becomes Accepted. Escalate-at is cleared. Movement reason is <code>accepted</code>. No further target is notified.</td></tr>
+  <tr><td>No remaining active target</td><td>Status becomes Exhausted. Movement reason is <code>routing_exhausted</code>. Platform Admins are notified.</td></tr>
+</table>
+<h2>23.3 Worked numeric example</h2>
+<p>Configuration: Best Academy interval 30 minutes, Listing B interval 30 minutes, Listing C inactive, Listing D interval 60 minutes. Enquiry at 10:00.</p>
+<ul>
+  <li>10:00 Assigned to Best Academy. Escalate-at 10:30.</li>
+  <li>10:30 not accepted. Assigned to Listing B. Listing C is skipped because inactive. Escalate-at 11:00.</li>
+  <li>11:00 not accepted. Assigned to Listing D. Escalate-at 12:00.</li>
+  <li>12:00 not accepted. Exhausted.</li>
+</ul>
+<p>If Listing B accepts at 10:40, the lead stops there. Listing D is not notified.</p>
+<h2>23.4 Concurrency and failure</h2>
+<ul>
+  <li>The escalation job locks the lead row. If the status is no longer Assigned, the job does nothing.</li>
+  <li>Accept locks the lead row. If the status is no longer Assigned to that target, Accept fails with a clear message.</li>
+  <li>A failed email does not roll back assignment. The notification row stores the failure. The in-app notification still exists.</li>
+  <li>The public enquiry request does not wait for email delivery before returning the reference.</li>
+</ul>
+<h2>23.5 What assignees can see</h2>
+<p>The lead detail shows the reference, status, assignment time, escalate-at time, contact snapshot, requirement snapshot if the full form was used, interested colleges, recommendation reasons if any, and movement history. Lead Operators see history of the same lead only while they are the current assignee. After escalation they lose access. Platform Admin retains the full history. This protects student contact details from listings whose turn has ended.</p>
+
+<h1 class="sec" id="s24">24. Notifications</h1>
+<table>
+  <caption>24.1 Events</caption>
+  <tr><th>Event</th><th>In-app</th><th>Email</th><th>Student screen</th></tr>
+  <tr><td>Enquiry stored</td><td>No</td><td>Optional acknowledgement to the student if a gateway and template exist</td><td>Always. Reference number.</td></tr>
+  <tr><td>Lead assigned</td><td>Yes, to that target’s active Lead Operators and to Platform Admins</td><td>Yes if gateway is configured, to the target contact email and operator emails</td><td>No internal routing detail</td></tr>
+  <tr><td>Lead accepted</td><td>Yes, to Platform Admins</td><td>No student mail in Phase 1</td><td>No</td></tr>
+  <tr><td>Routing exhausted</td><td>Yes, to Platform Admins</td><td>Yes to Platform Admins if gateway is configured</td><td>No</td></tr>
+  <tr><td>Lead queued because Best Academy is inactive</td><td>Yes, to Platform Admins</td><td>Yes if gateway is configured</td><td>Confirmation still says the enquiry was received. It does not say routing failed.</td></tr>
+</table>
+<p>Email content contains the lead reference, the assignment fact, and a link to the admin lead. It does not need to repeat every student field if the admin screen is the working view. SMS and WhatsApp are out of scope.</p>
+<p>The client supplies the student consent sentence, the student acknowledgement wording, and the sender mailbox. Until those exist, non-production uses an obvious placeholder and does not send external mail.</p>
+
+<h1 class="sec" id="s25">25. Search, Filter, Sort, and Pagination</h1>
+<h2>25.1 Public college search</h2>
+<p>The keyword matches display name, official name, short name, city name, and active course name. Matching is case-insensitive and partial. An empty keyword returns the filtered list.</p>
+<table>
+  <tr><th>Control</th><th>Behaviour</th></tr>
+  <tr><td>State, city</td><td>City options depend on the selected state.</td></tr>
+  <tr><td>College type, ownership, course category, study level</td><td>Multi-select. A college matches if any active course or the college field matches.</td></tr>
+  <tr><td>Scholarship available</td><td>Yes limits the list to colleges with at least one publicly visible scholarship.</td></tr>
+  <tr><td>Hostel available</td><td>Yes limits the list to Hostel = Available.</td></tr>
+  <tr><td>Maximum fee</td><td>Optional number. Keeps colleges that have at least one active course whose total estimated fee is within the number. Colleges with no fee stay visible only when this filter is empty.</td></tr>
+  <tr><td>Sort</td><td>Name A–Z (default), name Z–A, recently updated, NIRF rank ascending with unranked last, total fee ascending with missing fee last.</td></tr>
+  <tr><td>Page size</td><td>12. The response includes page, page size, and total.</td></tr>
+</table>
+<h2>25.2 Recommendation shortlist</h2>
+<p>Ordered by the signed-off score. Not re-sorted by the student in Phase 1. Opening a college does not lose the shortlist token.</p>
+<h2>25.3 Admin lists</h2>
+<p>Page size 20. Default sort is most recently updated. Search is the same partial match on the record’s main name, and for leads also on reference, student name, and mobile.</p>
+
+<h1 class="sec" id="s26">26. Operational Views</h1>
+<p>Phase 1 monitoring is operational, not analytical. The following views are required. Chart.js dashboards, funnel reports, and spreadsheet export are excluded.</p>
+<ul>
+  <li>Dashboard counts defined in FR-ADM-03, each count opening the matching list.</li>
+  <li>Lead list with status, current target, assigned time, escalate-at, student name, mobile, and interested college names.</li>
+  <li>Lead detail with movement history in time order.</li>
+  <li>Submission list with student name, mobile, study level, category, scholarship yes/no, time, and result count.</li>
+  <li>Routing page showing the live order, interval, active flag, and which row is Best Academy.</li>
+</ul>
+<p>These views are enough to see whether Best Academy is receiving leads and whether escalation happened on time.</p>
+
+<h1 class="sec" id="s27">27. Security, Access, and Privacy</h1>
+<table>
+  <tr><th>ID</th><th>Requirement</th></tr>
+  <tr><td>SEC-01</td><td>Admin passwords are hashed by Laravel’s standard hasher. They are never stored or logged in clear text. Minimum length 10, with letters and a number.</td></tr>
+  <tr><td>SEC-02</td><td>Inactive admin users cannot authenticate. Deactivation ends existing sessions on the next request.</td></tr>
+  <tr><td>SEC-03</td><td>Every admin endpoint checks the role. Lead Operator queries are constrained to the current assignment on the server, not only hidden in the UI.</td></tr>
+  <tr><td>SEC-04</td><td>Public college payloads exclude leads, admin user data, internal notes, and exact scholarship records that are Inactive.</td></tr>
+  <tr><td>SEC-05</td><td>Requirement and enquiry endpoints are rate-limited. Proposed limit: 5 successful requirement submissions and 5 successful enquiries per mobile number per hour, and 30 requests per IP per hour on those two endpoints.</td></tr>
+  <tr><td>SEC-06</td><td>A honeypot field is included on public forms. Filled honeypots are rejected as spam and are not stored as leads.</td></tr>
+  <tr><td>SEC-07</td><td>Uploads are checked for extension and actual MIME type. Files are not served from an executable location.</td></tr>
+  <tr><td>SEC-08</td><td>Errors returned to the browser do not include stack traces, SQL, or filesystem paths.</td></tr>
+  <tr><td>SEC-09</td><td>Transport in any deployed environment is HTTPS. TLS termination is part of hosting, which is a client infrastructure responsibility.</td></tr>
+  <tr><td>SEC-10</td><td>Personal data collected is limited to the fields in this SRS. There is no marketing export in Phase 1.</td></tr>
+  <tr><td>SEC-11</td><td>A student cannot submit the form without the consent checkbox. The stored lead records the consent time and the version of the consent text.</td></tr>
+  <tr><td>SEC-12</td><td>Recommendation tokens are unguessable. Guessing one token must not make another student’s data listable.</td></tr>
+  <tr><td>SEC-13</td><td>Admin session lifetime is 8 hours of inactivity. <span class="tag p">Proposed</span>.</td></tr>
+</table>
+<p>The source does not name a privacy statute or a data-retention period. Retention is OQ-55. Until it is set, the system does not auto-delete leads. Auto-deletion without a confirmed period would destroy enquiry history the business has asked to keep.</p>
+
+<h1 class="sec" id="s28">28. Non-Functional Requirements</h1>
+<p>Targets below are engineering acceptance targets for the application on a normal broadband connection against a catalogue of up to 500 published colleges. They are not a hosting SLA. Hosting capacity is outside the quotation.</p>
+<table>
+  <tr><th>ID</th><th>Target</th></tr>
+  <tr><td>NFR-01</td><td>Public college list and college profile return in under 2 seconds at the API for a page of 12 colleges, excluding client image download, on the agreed test environment.</td></tr>
+  <tr><td>NFR-02</td><td>Recommendation for one submission returns in under 3 seconds for up to 500 published colleges.</td></tr>
+  <tr><td>NFR-03</td><td>Enquiry confirmation is returned in under 2 seconds, not including email delivery.</td></tr>
+  <tr><td>NFR-04</td><td>Escalation runs within 2 minutes after escalate-at, provided the scheduler is running every minute.</td></tr>
+  <tr><td>NFR-05</td><td>The public site is usable at 360px and at 1280px width.</td></tr>
+  <tr><td>NFR-06</td><td>Uploaded images are constrained by Section 18.3 so a single upload cannot exhaust the request limits unnoticed. Server upload limits must be set above 5 MB.</td></tr>
+  <tr><td>NFR-07</td><td>The escalation job is safe to run more than once. A second run does not double-assign.</td></tr>
+  <tr><td>NFR-08</td><td>Admin and public empty, error, and validation states use readable text. Colour is not the only indicator of an error.</td></tr>
+</table>
+<p>No concurrent-user capacity number was supplied. None is invented as a contractual SLA. The design uses pagination and indexed filters so the catalogue queries do not scan unbounded tables for ordinary list pages.</p>
+
+<h1 class="sec" id="s29">29. Integration Requirements</h1>
+<table>
+  <tr><th>Integration</th><th>Phase 1 behaviour</th><th>Commercial note from the source</th></tr>
+  <tr><td>Email gateway</td><td>Optional adapter. If host, port, username, password, from-address, and encryption are configured, assignment and admin alert mail is sent. If not, events are stored as skipped.</td><td>Gateway cost is excluded from the quotation.</td></tr>
+  <tr><td>Google Maps</td><td>If a browser key is configured, the profile shows an embedded map from stored coordinates. If not, the profile shows the address and a normal outbound maps link.</td><td>Third-party API cost is excluded.</td></tr>
+  <tr><td>SMS, WhatsApp, payment, CRM, university APIs, NIRF/NAAC live feeds</td><td>Not integrated.</td><td>Not in Phase 1 scope.</td></tr>
+</table>
+<p>The system does not scrape college websites. Catalogue values come from admin entry of client-approved data.</p>
+
+<h1 class="sec" id="s30">30. Error and Exception Handling</h1>
+<table>
+  <caption>30.1 Expected behaviour</caption>
+  <tr><th>Situation</th><th>Behaviour</th></tr>
+  <tr><td>Required field missing or invalid</td><td>Save or submit is rejected. Field messages are returned. Nothing is half-published.</td></tr>
+  <tr><td>Publish checklist fails</td><td>College stays in its current status. The missing items are listed.</td></tr>
+  <tr><td>Duplicate course name in one college</td><td>Rejected.</td></tr>
+  <tr><td>Duplicate enquiry within 30 minutes for the same mobile and the same colleges</td><td>Rejected with the existing reference. No second lead.</td></tr>
+  <tr><td>College unpublished between shortlist and enquiry</td><td>That college cannot be newly enquired. If it was the only selection, the enquiry is rejected and the student is asked to choose another published college. Other selected published colleges can still be submitted.</td></tr>
+  <tr><td>No recommendation matches</td><td>Empty state. No lead is created unless the student later enquires from browsing.</td></tr>
+  <tr><td>Best Academy inactive</td><td>Lead Queued. Student still receives a reference. Priority 2 is not used as a substitute.</td></tr>
+  <tr><td>Accept after escalation</td><td>Rejected. The previous operator is told the lead has moved.</td></tr>
+  <tr><td>Double accept</td><td>One success. The other request receives the current Accepted status.</td></tr>
+  <tr><td>Scheduler delayed</td><td>No early escalation. Late escalation uses the actual time. The original escalate-at remains visible in history.</td></tr>
+  <tr><td>Email gateway down</td><td>Assignment stands. Notification status is failed. Admin can see the failure. The user can retry nothing automatically more than three attempts. <span class="tag e">Elaborated</span> retry: three attempts, then stop.</td></tr>
+  <tr><td>Maps key missing or blocked</td><td>Profile still shows the address and outbound link.</td></tr>
+  <tr><td>Upload too large or wrong type</td><td>Rejected. Existing media is unchanged.</td></tr>
+  <tr><td>Session expired</td><td>Admin is returned to sign in. The attempted write is not applied.</td></tr>
+  <tr><td>Lead Operator opens another listing’s lead by guessing an id</td><td>Not found. The same response is used as for a missing id, so existence is not confirmed.</td></tr>
+  <tr><td>API unavailable</td><td>Public forms keep entered data and show a retry message.</td></tr>
+  <tr><td>Invalid status change, including hand-edited requests</td><td>Rejected by the server.</td></tr>
+  <tr><td>Archived reference value still on an old college</td><td>Displayed. Not offered for new selection.</td></tr>
+  <tr><td>Fee or scholarship absent</td><td>Section shows “Not provided”. Recommendation follows the signed-off fee rule rather than failing the page.</td></tr>
+</table>
+
+<h1 class="sec" id="s31">31. Audit and Logging</h1>
+<table>
+  <tr><th>Event</th><th>What is stored</th></tr>
+  <tr><td>College create, section update, publish, unpublish, archive, restore</td><td>Actor, time, college id, action. Field-level before-and-after diffs are not required in Phase 1.</td></tr>
+  <tr><td>Routing configuration change</td><td>Actor, time, and the saved row. This matters because it explains why a later lead took a different path.</td></tr>
+  <tr><td>Lead movements</td><td>Full movement row as in Section 18.11. This is the lead history required by the source.</td></tr>
+  <tr><td>Accept</td><td>Actor and time on the lead and in movement history.</td></tr>
+  <tr><td>Admin sign-in success and failure</td><td>Time, email attempted, success or failure, IP. Do not store the password.</td></tr>
+  <tr><td>Notification attempt</td><td>Channel, result, time, related lead.</td></tr>
+</table>
+<p>Application logs must not contain full requirement payloads or email bodies. They may contain lead reference and college id.</p>
+
+<h1 class="sec" id="s32">32. SEO and Public Content</h1>
+<p>A full SEO back office is excluded. Public pages still need basic identification so the discovery site can be linked and shared.</p>
+<ul>
+  <li>Each published college has a stable slug URL.</li>
+  <li>The page title is the display name plus city.</li>
+  <li>The meta description uses the college description, trimmed. If description is missing, the page is not publishable, so the meta description exists for every public profile.</li>
+  <li>The listing page has a single H1. The profile H1 is the college display name.</li>
+  <li>Images use the college name as alternative text when no caption exists.</li>
+  <li>Draft and unpublished colleges are not linked and are not included in any public sitemap generated by the app.</li>
+</ul>
+<p>Blog content, landing-page CMS, schema campaigns, and editable meta templates are a later phase.</p>
+
+<h1 class="sec" id="s33">33. Exclusions and Change Control</h1>
+<p>The following are not Phase 1 deliverables. A request to add them is estimated separately for time and cost before any of the work starts, as required by source sections 31 and 33 and by the terms on changes.</p>
+<ul>
+  <li>Community features of any kind.</li>
+  <li>Reviews, ratings, and moderation.</li>
+  <li>College comparison, college predictor, and a course-finder tool other than the Phase 1 requirement form and shortlist.</li>
+  <li>Student accounts and college-representative portals.</li>
+  <li>Blog, news, AI writing, and partner content workflow.</li>
+  <li>SEO campaign tools and analytics charts.</li>
+  <li>Payment collection, online admission applications, and document upload by students.</li>
+  <li>SMS, WhatsApp, and live chat.</li>
+  <li>Manual lead reassignment, rejection, and CRM stages after acceptance.</li>
+  <li>Multi-campus college structures, unless OQ-25 is answered by adding them through change control.</li>
+  <li>Spreadsheet import of colleges. Data entry in Phase 1 is through the admin panel. A one-time import can be quoted separately if the client’s data arrives as a sheet.</li>
+  <li>Native iOS and Android applications.</li>
+  <li>Production hosting, domain, mailbox licences, map-key billing, and ongoing infrastructure maintenance.</li>
+</ul>
+<p>Defects against this SRS, once approved, are defects. Disagreements with a proposed item are resolved by answering Section 35, not by treating the proposed text as a hidden extra.</p>
+
+<h1 class="sec" id="s34">34. Data Readiness and the Development-Start Gate</h1>
+<p>Source sections 29, 30, and 34 are mandatory. The 40 working days begin on the date the client confirms, in writing, that every blocker below is complete. Partial data allows technical preparation only when the project manager and the client agree that preparation is unpaid relative to the clock, or they explicitly start the clock early. This SRS does not start that clock.</p>
+<table>
+  <caption>34.1 Gate checklist</caption>
+  <tr><th>Item</th><th>Done when</th></tr>
+  <tr><td>This SRS</td><td>Approved, including accepted or rewritten answers for every blocker in Section 35.</td></tr>
+  <tr><td>Recommendation rules</td><td>Section 22 accepted or a replacement model signed.</td></tr>
+  <tr><td>Lead rules</td><td>OQ-01, OQ-02, OQ-03, OQ-04, OQ-05, and OQ-33 answered.</td></tr>
+  <tr><td>College data structure</td><td>Field list in Section 18 accepted, or differences marked on it.</td></tr>
+  <tr><td>Master lists</td><td>College types, ownership values beyond the minimum, course categories, student categories, scholarship types, streams if used, and state/city list supplied.</td></tr>
+  <tr><td>Catalogue content</td><td>At least the colleges required for the first release are supplied, including courses, eligibility, fees, admission, scholarships, facilities, placement, and locations, or the client marks specific blocks as intentionally absent.</td></tr>
+  <tr><td>Routing</td><td>Best Academy legal/display name, contact email, contact phone, interval confirmation, and the ordered later listings supplied.</td></tr>
+  <tr><td>Assets</td><td>Logos and photos supplied, or a written waiver that placeholders are acceptable for launch.</td></tr>
+  <tr><td>Consent and mail copy</td><td>Client-approved text supplied, or a written waiver for launch without outbound email.</td></tr>
+  <tr><td>Commercial conflicts</td><td>Appendix A figures and the testing-day question confirmed if the contract is to be read with this SRS. These do not change software behaviour, but the source says approval to proceed is part of the gate.</td></tr>
+  <tr><td>Written start approval</td><td>A dated approval from the client point of contact.</td></tr>
+</table>
+<p>QA acceptance of recommendation quality is only meaningful on the supplied catalogue. Fixture colleges may be used earlier to prove the mechanics.</p>
+<p>The source also states a testing period of 10 working days. Whether those days sit inside the 40 is OQ-37. This SRS does not convert that ambiguity into a schedule.</p>
+
+<h1 class="sec" id="s35">35. Open Questions</h1>
+<p>Blockers must be answered before the development-start gate. Other items have a recommended handling if the client wishes to accept this SRS as a whole.</p>
+<table>
+  <caption>35.1 Blockers</caption>
+  <tr><th>ID</th><th>Question</th><th>Recommended handling if accepted with this SRS</th></tr>
+  <tr><td>OQ-01</td><td>Is Best Academy a public college, an external counselling organisation, or an organisation that may also have a college page?</td><td>Model it as a routing target that can optionally link to a college. It does not need a public page to receive leads.</td></tr>
+  <tr><td>OQ-02</td><td>Does a direct enquiry from a college profile still go to Best Academy first?</td><td>Yes. Screen copy must not say the selected college has already been contacted.</td></tr>
+  <tr><td>OQ-03</td><td>Who may accept?</td><td>The Lead Operator of the current target, and any Platform Admin.</td></tr>
+  <tr><td>OQ-04</td><td>Is there a Reject action? If yes, does rejection escalate immediately?</td><td>No Reject action in Phase 1. Only the timer escalates.</td></tr>
+  <tr><td>OQ-05</td><td>Is the next listing simply the next active priority row, or the next row that also matches the student’s course and budget?</td><td>The next active row in the snapshotted priority order. Student match does not skip rows.</td></tr>
+  <tr><td>OQ-09</td><td>If the student requires a scholarship, are colleges without one removed?</td><td>No. They rank lower. Scholarships that exist are shown.</td></tr>
+  <tr><td>OQ-10</td><td>Is maximum course fee a ceiling?</td><td>Yes, where a total estimated fee exists. Missing fees stay visible and are labelled.</td></tr>
+  <tr><td>OQ-11</td><td>Is preferred location a ceiling?</td><td>No. It affects rank only.</td></tr>
+  <tr><td>OQ-13</td><td>Are the Section 22 weights, the 40-point floor, and the cap of 20 results correct?</td><td>Accept Section 22 as written, or replace the table before the gate.</td></tr>
+  <tr><td>OQ-33</td><td>What happens if Best Academy is inactive when a student enquires?</td><td>Store the lead as Queued. Do not send it to the next listing. Release queued leads to Best Academy only after it is active again.</td></tr>
+  <tr><td>OQ-38</td><td>Does the 40-day clock follow source sections 30 and 34, or the terms phrase “project initiation date”?</td><td>Treat sections 30 and 34, operationalised by Section 34 of this SRS, as the clock start. Confirm the contract uses that meaning.</td></tr>
+</table>
+<table>
+  <caption>35.2 Confirmations that should be closed with the SRS, without blocking schema design</caption>
+  <tr><th>ID</th><th>Question</th><th>Recommended handling</th></tr>
+  <tr><td>OQ-06</td><td>One lead per enquiry submission, or one lead per college selected?</td><td>One lead per submission, with many interested colleges.</td></tr>
+  <tr><td>OQ-07</td><td>Do accepted leads need later statuses such as contacted or joined?</td><td>No. Accepted and Exhausted are terminal in Phase 1.</td></tr>
+  <tr><td>OQ-08</td><td>May a student get recommendations without enquiring?</td><td>Yes.</td></tr>
+  <tr><td>OQ-12</td><td>Do required hostel or transport remove colleges?</td><td>No. They affect rank. Unknown facilities do not remove colleges.</td></tr>
+  <tr><td>OQ-14</td><td>Which course is shown when several match?</td><td>The highest-scoring matching course, plus a count of the others.</td></tr>
+  <tr><td>OQ-15</td><td>Are student logins in Phase 1?</td><td>No.</td></tr>
+  <tr><td>OQ-16</td><td>Is a college self-service portal in Phase 1?</td><td>No. Lead Operator is an admin user.</td></tr>
+  <tr><td>OQ-17</td><td>Material UI or Bootstrap?</td><td>Material UI only.</td></tr>
+  <tr><td>OQ-18</td><td>Sanctum or Passport?</td><td>Sanctum only.</td></tr>
+  <tr><td>OQ-19</td><td>One web app or two?</td><td>One React application, separate public and admin areas.</td></tr>
+  <tr><td>OQ-20</td><td>Which database?</td><td>MySQL 8.</td></tr>
+  <tr><td>OQ-23</td><td>Which business time zone?</td><td>Asia/Kolkata. Store UTC.</td></tr>
+  <tr><td>OQ-24</td><td>Interval bounds, and is the interval per listing?</td><td>Per listing. Default 30. Allowed 5 to 10,080 minutes.</td></tr>
+  <tr><td>OQ-25</td><td>Multiple campuses?</td><td>One primary location in Phase 1.</td></tr>
+  <tr><td>OQ-32</td><td>May a Platform Admin manually reassign a live lead?</td><td>No.</td></tr>
+  <tr><td>OQ-35</td><td>Are any successful enquiries exempt from Best Academy?</td><td>No.</td></tr>
+  <tr><td>OQ-40</td><td>Do edits to a published college go live immediately?</td><td>Yes, on save of that section.</td></tr>
+  <tr><td>OQ-41</td><td>Can records be hard-deleted?</td><td>No.</td></tr>
+  <tr><td>OQ-45</td><td>Is the student told when a lead moves to the next listing?</td><td>No.</td></tr>
+  <tr><td>OQ-46</td><td>SMS or WhatsApp?</td><td>No.</td></tr>
+  <tr><td>OQ-48</td><td>Is basic title and meta description enough SEO for Phase 1?</td><td>Yes.</td></tr>
+  <tr><td>OQ-49</td><td>Does hostel budget exclude colleges?</td><td>No. Hostel fee is displayed. It is not a gate.</td></tr>
+  <tr><td>OQ-51</td><td>How long does a recommendation link remain valid?</td><td>72 hours.</td></tr>
+  <tr><td>OQ-52</td><td>What gender values, if any, are legally approved for scholarship eligibility?</td><td>Do not ship a gender filter until the client supplies the list. The column may exist unused.</td></tr>
+  <tr><td>OQ-53</td><td>What are the allowed current-education values, including school stages?</td><td>Client supplies the list. Study level alone is not a substitute if 10th and 12th students are a primary audience.</td></tr>
+  <tr><td>OQ-54</td><td>Are entrance scores percentages, ranks, or exam-specific scales?</td><td>Store one optional score and one optional rank as numbers. Do not convert between exams.</td></tr>
+  <tr><td>OQ-55</td><td>How long are leads and submissions retained?</td><td>Keep them until a written retention period is provided. No automatic deletion in Phase 1.</td></tr>
+<tr><td>OQ-56</td><td>What does “college size” mean on the student form, and is it in Phase 1?</td><td>Omit a size control until the client defines it, for example student strength bands. College type remains.</td></tr>
+  <tr><td>OQ-36</td><td>Which advance, GST base, and balance installment schedule is contractual?</td><td>See Appendix A. Written confirmation required. Not a software rule.</td></tr>
+  <tr><td>OQ-37</td><td>Are the 10 testing days inside the 40 working days or additional?</td><td>Unresolved. Do not plan a date from this SRS alone.</td></tr>
+</table>
+<p>Data questions for college type, category, university, and the initial routing list are gate items in Section 34 rather than product-design questions. They do not have a safe invented default beyond the ownership values Government and Private.</p>
+
+<h1 class="sec" id="s36">36. Acceptance Criteria</h1>
+<p>QA can turn each item into a test. Criteria that depend on Section 22 apply after that section is signed. Routing criteria apply to the committed state machine now.</p>
+<table>
+  <caption>36.1 Catalogue and public site</caption>
+  <tr><th>ID</th><th>Pass condition</th></tr>
+  <tr><td>AC-01</td><td>A draft college with only a name can be saved and does not appear in public search.</td></tr>
+  <tr><td>AC-02</td><td>Publish is blocked until the Section 20 checklist passes, and the screen lists what is missing.</td></tr>
+  <tr><td>AC-03</td><td>A published college with two active courses and one inactive course shows only the two active courses publicly.</td></tr>
+  <tr><td>AC-04</td><td>Fee components and the admin-entered total both appear. Changing components does not silently change the total.</td></tr>
+  <tr><td>AC-05</td><td>An active scholarship with eligibility, benefit, dates, and provider appears on the profile. An inactive scholarship does not.</td></tr>
+  <tr><td>AC-06</td><td>A past application end date shows “Application window ended” and does not hide the college.</td></tr>
+  <tr><td>AC-07</td><td>Unpublishing removes the college from listing, search, recommendation, and direct URL. The URL is a not-found state.</td></tr>
+  <tr><td>AC-08</td><td>Search by short name, city, and course name finds the college. Filters combine. Pagination totals match the filtered count.</td></tr>
+  <tr><td>AC-09</td><td>At 360px width the listing can be filtered and a profile can be read and used to start an enquiry.</td></tr>
+</table>
+<table>
+  <caption>36.2 Form and recommendation</caption>
+  <tr><th>ID</th><th>Pass condition</th></tr>
+  <tr><td>AC-10</td><td>The scholarship question is on the main path and the form cannot be submitted with it unanswered.</td></tr>
+  <tr><td>AC-11</td><td>Submit without consent is rejected and nothing is stored.</td></tr>
+  <tr><td>AC-12</td><td>A submission stores every answered field and returns only colleges that pass the signed gates.</td></tr>
+  <tr><td>AC-13</td><td>A recommended college that has a relevant active scholarship shows that scholarship on the shortlist.</td></tr>
+  <tr><td>AC-14</td><td>A college above the maximum course fee is absent when the fee is recorded. A college with no fee is labelled, not described as free.</td></tr>
+  <tr><td>AC-15</td><td>When no college passes, the empty state appears and no fake college is shown.</td></tr>
+  <tr><td>AC-16</td><td>Refreshing the result with the token shows the same colleges and scores that were stored.</td></tr>
+</table>
+<table>
+  <caption>36.3 Enquiry and routing</caption>
+  <tr><th>ID</th><th>Pass condition</th></tr>
+  <tr><td>AC-17</td><td>A profile enquiry and a multi-college recommendation enquiry each create one lead and show a reference.</td></tr>
+  <tr><td>AC-18</td><td>With Best Academy active, the first movement assigns Best Academy and nobody else. Priority 2 has no in-app notification at minute zero.</td></tr>
+  <tr><td>AC-19</td><td>Accept at minute 10 leaves the lead Accepted. A scheduler run at minute 30 does not move it.</td></tr>
+  <tr><td>AC-20</td><td>No accept by the interval moves the lead to the next active target, skips inactive targets, writes history, and removes the lead from the previous operator’s queue.</td></tr>
+  <tr><td>AC-21</td><td>The previous operator cannot accept after the move. A Platform Admin can still read the history.</td></tr>
+  <tr><td>AC-22</td><td>When the list ends, the status is Exhausted and no further assignment occurs.</td></tr>
+  <tr><td>AC-23</td><td>With Best Academy inactive, the lead is Queued, the student still has a reference, and priority 2 receives nothing.</td></tr>
+  <tr><td>AC-24</td><td>Changing a listing’s interval after assignment does not change that lead’s escalate-at time.</td></tr>
+  <tr><td>AC-25</td><td>Two simultaneous accept requests result in one Accepted movement.</td></tr>
+  <tr><td>AC-26</td><td>A Lead Operator who edits the request to assign a different target is rejected.</td></tr>
+  <tr><td>AC-27</td><td>Repeating the same enquiry within 30 minutes returns the original reference and does not create a second lead.</td></tr>
+</table>
+<table>
+  <caption>36.4 Security and operations</caption>
+  <tr><th>ID</th><th>Pass condition</th></tr>
+  <tr><td>AC-28</td><td>An unauthenticated call to an admin endpoint is rejected.</td></tr>
+  <tr><td>AC-29</td><td>A Lead Operator cannot open another target’s current lead by id.</td></tr>
+  <tr><td>AC-30</td><td>A non-image upload and an oversize image are rejected.</td></tr>
+  <tr><td>AC-31</td><td>With no map key, the profile still shows the address. With no mail gateway, assignment still succeeds and the notification is marked skipped or failed without losing the lead.</td></tr>
+  <tr><td>AC-32</td><td>The last Platform Admin cannot be deactivated.</td></tr>
+  <tr><td>AC-33</td><td>Dashboard counts match the lead and college lists for the same statuses.</td></tr>
+</table>
+
+<h1 class="sec" id="s37">37. End-to-End System Flow</h1>
+<div class="flow">
+  <span>Platform Admin signs in</span>
+  <span>Reference data ready</span>
+  <span>College draft</span>
+  <span>Courses, fees, admission</span>
+  <span>Scholarships</span>
+  <span>Facilities, placement, location, media</span>
+  <span class="gold">Publish</span>
+</div>
+<div class="flow">
+  <span>Student browses or opens the form</span>
+  <span>Form stored</span>
+  <span class="alt">Server recommendation</span>
+  <span>Shortlist and scholarship details</span>
+  <span>Profile review</span>
+  <span class="gold">Enquiry</span>
+  <span>Lead stored</span>
+</div>
+<div class="flow">
+  <span>Valid Best Academy?</span>
+  <span class="gold">Assigned priority 1</span>
+  <span>Wait configured interval</span>
+  <span>Accept and stop</span>
+  <span class="alt">Else next active listing</span>
+  <span>Repeat</span>
+  <span>Exhausted if none remain</span>
+</div>
+<p>If Best Academy is not valid, the flow stops in Queued after the lead is stored. It does not jump to “next active listing”.</p>
+<p>Community, comparison, predictor, reviews, and blog publishing are not steps in this flow.</p>
+
+<h1 class="sec" id="s38">38. Traceability</h1>
+<table>
+  <caption>38.1 Source section to this SRS</caption>
+  <tr><th>Source</th><th>Subject</th><th>SRS</th></tr>
+  <tr><td>1</td><td>Wider vision</td><td>Sections 3 and 33. Vision items not in the Phase 1 list are excluded.</td></tr>
+  <tr><td>2</td><td>Phase 1 objective</td><td>Sections 6 and 7.</td></tr>
+  <tr><td>3</td><td>Core modules, including community boundary</td><td>Section 5.</td></tr>
+  <tr><td>4</td><td>Basic college information</td><td>Sections 14.2, 15.3, 18.1, 18.3.</td></tr>
+  <tr><td>5</td><td>Location</td><td>Section 18.2.</td></tr>
+  <tr><td>6</td><td>Courses</td><td>Section 18.4.</td></tr>
+  <tr><td>7</td><td>Admission</td><td>Section 18.5.</td></tr>
+  <tr><td>8</td><td>Fees</td><td>Section 18.6.</td></tr>
+  <tr><td>9</td><td>Scholarships and student visibility</td><td>Sections 18.7, 15.3, 22, BR-09.</td></tr>
+  <tr><td>10</td><td>Facilities</td><td>Section 18.8.</td></tr>
+  <tr><td>11</td><td>Placement</td><td>Section 18.9.</td></tr>
+  <tr><td>12</td><td>Public listing and enquiry</td><td>Sections 15 and 25.</td></tr>
+  <tr><td>13</td><td>College profile structure</td><td>Section 15.3.</td></tr>
+  <tr><td>14–19</td><td>Student form, including scholarship prominence and budget</td><td>Sections 14.3 and 18.10.</td></tr>
+  <tr><td>20–21</td><td>Recommendation journey and card content</td><td>Sections 12.2, 14.4, 22, FR-REC-02.</td></tr>
+  <tr><td>22</td><td>Selection and enquiry</td><td>Sections 14.5 and 18.11.</td></tr>
+  <tr><td>23–25</td><td>Best Academy first, 30 minutes, later listings</td><td>Sections 19 and 23, AC-18 to AC-22.</td></tr>
+  <tr><td>26</td><td>Admin routing configuration and history</td><td>Sections 16, 18.11, 23, 31.</td></tr>
+  <tr><td>27</td><td>Community is a product priority and not a Phase 1 build</td><td>Sections 5.2 and 33.</td></tr>
+  <tr><td>28</td><td>Inclusion table</td><td>Section 5.1.</td></tr>
+  <tr><td>29</td><td>Data is a prerequisite</td><td>Section 34.</td></tr>
+  <tr><td>30 and 34</td><td>Clock start</td><td>Sections 1, 34, OQ-38.</td></tr>
+  <tr><td>31 and rule 07</td><td>Change control</td><td>Section 33.</td></tr>
+  <tr><td>32</td><td>End-to-end narrative</td><td>Section 37.</td></tr>
+  <tr><td>33</td><td>Seven business rules</td><td>Section 19.</td></tr>
+  <tr><td>Technology list</td><td>React, Vite, router, forms, Sanctum, Axios</td><td>Section 11. Unused items are excluded in Section 4, F-09.</td></tr>
+  <tr><td>Quotation and terms</td><td>Price, days, payments, exclusions, support statements</td><td>Appendix A. Not converted into unstated features.</td></tr>
+</table>
+<h2>38.2 Cross-check</h2>
+<p>The source’s critical rules are all present: structured college data, public display of that data, the student form, recommendation from that form, scholarship as its own structure, enquiry, Best Academy first, configurable escalation with a 30-minute default, admin routing control, lead history, the data gate, the 40-day start condition, and change control. Community remains acknowledged and unbuilt. No property-owner function was added. No comparison, predictor, review, blog, AI, or chart module was added.</p>
+
+<h1 class="sec" id="sa">Appendix A. Commercial Statements as Supplied</h1>
+<div class="warn">
+  This appendix records the commercial text so it is not lost. It is not a software specification. Where the source contradicts itself, both statements are shown. This SRS does not choose the payable amount.
+</div>
+<h2>A.1 Figures written in the source</h2>
+<table>
+  <tr><th>Statement in the source</th><th>Amount or text</th></tr>
+  <tr><td>Development cost before GST</td><td>INR 250,000</td></tr>
+  <tr><td>GST</td><td>18%</td></tr>
+  <tr><td>Cost plus GST</td><td>INR 295,000</td></tr>
+  <tr><td>Advance described as 60% and as INR 177,000</td><td>INR 177,000</td></tr>
+  <tr><td>Phrase “60% of INR 177,000 = INR 118,000”</td><td>As written. 60% of 177,000 is 106,200, so this phrase does not reconcile.</td></tr>
+  <tr><td>Balance described as total minus advance</td><td>INR 118,000</td></tr>
+  <tr><td>Balance schedule</td><td>“1 equal installments” and “over the next three months” are both written.</td></tr>
+  <tr><td>Advance character</td><td>Non-refundable, 60% before commencement.</td></tr>
+  <tr><td>Invoice clearance</td><td>Within 2 days of invoice date.</td></tr>
+  <tr><td>Duration</td><td>40 working days from project initiation, and also 10 working days for testing.</td></tr>
+  <tr><td>Late interest</td><td>2% monthly on delayed payments.</td></tr>
+  <tr><td>PMC</td><td>20% of development charges if a project management consultant is required.</td></tr>
+</table>
+<h2>A.2 What does add up, and what does not</h2>
+<ul>
+  <li>250,000 plus 18% equals 295,000.</li>
+  <li>177,000 plus 118,000 equals 295,000.</li>
+  <li>177,000 is 60% of 295,000. 118,000 is 40% of 295,000.</li>
+  <li>The sentence that defines 118,000 as 60% of 177,000 conflicts with those figures.</li>
+  <li>One installment and a three-month installment period conflict.</li>
+  <li>A 40-day duration and a separate 10-day testing statement are not arithmetically tied together.</li>
+  <li>“Project initiation date” conflicts with the requirement-document rule that the clock starts after data and approval, unless initiation is defined as that later date.</li>
+</ul>
+<p>OQ-36 and OQ-37 and OQ-38 need a written commercial confirmation. No invoice amount should be taken from the inconsistent sentence alone.</p>
+<h2>A.3 Other terms that affect delivery boundaries</h2>
+<p>The following remain contractual statements, not new features.</p>
+<ul>
+  <li>Source code and related materials transfer after full and final payment.</li>
+  <li>Withdrawal for reasons other than delay or quality leaves the advance non-refundable, as written.</li>
+  <li>Cloud, email gateway, and third-party API costs are excluded.</li>
+  <li>Complete deployment and infrastructure maintenance are additional charges. Basic deployment guidance to the single point of contact is included as guidance.</li>
+  <li>Technical support is stated as 6 months after deployment, business hours, for basic bug fixing and training. Design or structural changes are quoted separately. The stated response window is 30 minutes to 4 hours in office hours. Emergency support is stated for a downed application that blocks the business, including holidays.</li>
+  <li>One client point of contact is required.</li>
+  <li>Client delay in materials may delay the project.</li>
+  <li>Confidentiality is mutual between PROPLUS and the client.</li>
+  <li>The source liability clause limits liability for events beyond reasonable control.</li>
+</ul>
+<p>Support and code-transfer terms do not expand Section 5.1. They also do not reduce the acceptance criteria for the software that is built.</p>
+
+<h1 class="sec" id="sb">Appendix B. Technology and Team Statements</h1>
+<h2>B.1 Technology list as supplied, and the Phase 1 decision</h2>
+<table>
+  <tr><th>Source statement</th><th>Phase 1 decision</th></tr>
+  <tr><td>React.js</td><td>Used for the single web application.</td></tr>
+  <tr><td>CSS, Bootstrap / Material UI</td><td>Material UI is the proposed component library. Bootstrap is not combined with it.</td></tr>
+  <tr><td>Axios / Fetch</td><td>Axios.</td></tr>
+  <tr><td>React Router</td><td>Used.</td></tr>
+  <tr><td>React Hook Form / Formik and Yup</td><td>React Hook Form and Yup.</td></tr>
+  <tr><td>JWT with Sanctum / Passport</td><td>Laravel Sanctum. Passport is not added.</td></tr>
+  <tr><td>Context / Redux Toolkit</td><td>Context for the admin session.</td></tr>
+  <tr><td>Chart.js</td><td>Not used. No chart requirement is in Phase 1.</td></tr>
+  <tr><td>React Toastify and React Icons</td><td>May be used for short admin feedback and icons.</td></tr>
+  <tr><td>React Dropzone</td><td>Used for logo and gallery.</td></tr>
+  <tr><td>Vite recommended / Create React App</td><td>Vite.</td></tr>
+  <tr><td>Responsive grid</td><td>Required. See NFR-05.</td></tr>
+  <tr><td>“User and Property Owner”</td><td>Discarded as template text. See F-01.</td></tr>
+</table>
+<h2>B.2 Team structure as supplied</h2>
+<p>The source describes a vendor team of one React team lead, two senior React developers, and two junior React developers. That is a staffing statement. It is not a product role and it does not replace the Laravel API work this SRS requires. If the vendor team has no backend capacity, that is a delivery constraint the project manager must surface before the gate. It is not a reason to drop lead routing or the college model.</p>
+<p>Responsibilities stated for that team — coordination, reusable UI, API integration, responsive layout, validation, and review — remain compatible with Sections 15 and 16. They do not add product scope.</p>
+
+<h1 class="sec" id="sc">39. Requirement Summary</h1>
+<p>Phase 1 is a college catalogue, a public discovery site, a student requirement form, a server-side shortlist, structured scholarships, an enquiry, and a lead queue that always starts with Best Academy and moves only when the configured interval expires without acceptance.</p>
+<p>The build is implementable once Section 35 blockers are signed and the Section 34 data gate is met. Until then, the correct project state is requirement finalisation, not day one of the 40 working days.</p>
+<p>Community stays a stated product priority for a later phase. It is not a Phase 1 screen, table, or API.</p>
+<p class="small">End of SRS-CDP-P1, version 1.0, 28 September 2026. Export this file to PDF from the browser print dialog if a paginated copy is required. Page numbers and the document footer are applied in print layout.</p>
+
+</div>
+</div>
+</body>
+</html>

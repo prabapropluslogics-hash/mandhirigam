@@ -1,0 +1,55 @@
+{
+  "project_info": {
+    "project_number": "345211435595",
+    "project_id": "mandrigam-430de",
+    "storage_bucket": "mandrigam-430de.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:345211435595:android:ad4631ac22e32c23e72bce",
+        "android_client_info": {
+          "package_name": "com.maanthirigam.maanthirigam"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "345211435595-5n8onba5ku0od793aurhd9cb2qa2vqjg.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.maanthirigam.maanthirigam",
+            "certificate_hash": "ff2f71e6b54c9ca74e69076b789533b85341d3ac"
+          }
+        },
+        {
+          "client_id": "345211435595-98p9nkaqs4c6jhvkds10st5c7kvo2tlp.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.maanthirigam.maanthirigam",
+            "certificate_hash": "78008bbfcfdab2ae163e7cba25e8fdf80739363d"
+          }
+        },
+        {
+          "client_id": "345211435595-4089gdb2nr5t6kigu3s63bedtmbdcqfo.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA8Kl89uKLDA7n8af1I_5V3gQg1RtP8VsU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "345211435595-4089gdb2nr5t6kigu3s63bedtmbdcqfo.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

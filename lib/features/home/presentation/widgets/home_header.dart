@@ -1,19 +1,19 @@
 import 'package:flutter/material.dart';
 
-import '../../../../design_system/icons/app_icons.dart';
 import '../../../../design_system/theme/app_colors.dart';
-import '../../../../design_system/theme/app_sizes.dart';
 import '../../../../design_system/theme/app_spacing.dart';
 import '../../../../design_system/theme/app_typography.dart';
-import '../../../../shared/data/mock_catalog.dart';
+import '../../../startup/presentation/widgets/splash_brand.dart';
 
+/// Greeting line over the gold MAANTHIRIGAM wordmark, with the splash emblem
+/// as a quiet brand mark on the right.
 class HomeHeader extends StatelessWidget {
-  const HomeHeader({super.key});
+  const HomeHeader({super.key, required this.greeting});
+
+  final String greeting;
 
   @override
   Widget build(BuildContext context) {
-    final ColorScheme colors = Theme.of(context).colorScheme;
-
     return Padding(
       padding: AppInsets.pageHorizontal,
       child: Row(
@@ -23,49 +23,34 @@ class HomeHeader extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  MockCatalog.greeting,
-                  style: AppTypography.helper(context),
+                  greeting,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: AppTypography.bodySmall(context).copyWith(
+                    color: AppColors.textSecondaryDark,
+                    letterSpacing: 0.4,
+                  ),
                 ),
-                const SizedBox(height: AppSpacing.xxs),
-                Text(
-                  MockCatalog.currentUserName,
-                  style: AppTypography.display(context),
+                const SizedBox(height: AppSpacing.xs),
+                const Align(
+                  alignment: Alignment.centerLeft,
+                  child: SplashTitle(fontSize: 22),
                 ),
               ],
             ),
           ),
-          Stack(
-            clipBehavior: Clip.none,
-            children: [
-              Icon(
-                AppIcons.notifications,
-                size: AppSizes.iconLg,
-                color: AppColors.textPrimaryFor(Theme.of(context).brightness),
-              ),
-              Positioned(
-                right: 0,
-                top: 0,
-                child: Container(
-                  width: AppSizes.badgeDot,
-                  height: AppSizes.badgeDot,
-                  decoration: BoxDecoration(
-                    color: colors.primary,
-                    shape: BoxShape.circle,
-                  ),
-                ),
-              ),
-            ],
-          ),
           const SizedBox(width: AppSpacing.md),
-          CircleAvatar(
-            radius: AppSizes.avatar / 2,
-            backgroundColor: AppColors.avatarFallback,
-            child: Text(
-              'A',
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    color: AppColors.neutral0,
-                  ),
+          DecoratedBox(
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.brandPrimary.withOpacity(0.18),
+                  blurRadius: 18,
+                ),
+              ],
             ),
+            child: const SplashEmblem(size: 40),
           ),
         ],
       ),

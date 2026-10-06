@@ -14,6 +14,7 @@ class AppTextButton extends StatelessWidget {
     this.leadingIcon,
     this.trailingIcon,
     this.compact = false,
+    this.foregroundColor,
   });
 
   final String label;
@@ -24,6 +25,7 @@ class AppTextButton extends StatelessWidget {
   final IconData? leadingIcon;
   final IconData? trailingIcon;
   final bool compact;
+  final Color? foregroundColor;
 
   @override
   Widget build(BuildContext context) {
@@ -32,11 +34,14 @@ class AppTextButton extends StatelessWidget {
 
     final Widget button = TextButton(
       onPressed: effectiveOnPressed,
+      style: foregroundColor == null
+          ? null
+          : TextButton.styleFrom(foregroundColor: foregroundColor),
       child: AppButtonChild(
         label: label,
         isLoading: isLoading,
         isExpanded: isExpanded,
-        loaderColor: colors.primary,
+        loaderColor: foregroundColor ?? colors.primary,
         leadingIcon: leadingIcon,
         trailingIcon: trailingIcon,
       ),

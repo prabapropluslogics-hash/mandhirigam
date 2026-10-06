@@ -15,11 +15,16 @@ class ApiClient {
     http.Client? httpClient,
     this.onUnauthorized,
     this.readAccessToken,
+    this.refreshAccessToken,
   }) : _http = httpClient ?? http.Client();
 
   final http.Client _http;
   final UnauthorizedHandler? onUnauthorized;
   final Future<String?> Function()? readAccessToken;
+
+  /// Called once when a request with a token gets a 401; a non-empty result
+  /// is used to retry that request.
+  final Future<String?> Function()? refreshAccessToken;
 
   static const Duration _timeout = Duration(seconds: 20);
 
@@ -76,10 +81,41 @@ class ApiClient {
       throw error;
     }
 
+    final bool sendsToken = auth != AuthMode.none && token != null && token.isNotEmpty;
+    try {
+      return await _sendOnce(method, path, query: query, body: body, auth: auth, token: token);
+    } on ApiException catch (error) {
+      if (!sendsToken || !error.isUnauthorized) rethrow;
+      final String? fresh = await refreshAccessToken?.call();
+      if (fresh != null && fresh.isNotEmpty && fresh != token) {
+        try {
+          return await _sendOnce(method, path, query: query, body: body, auth: auth, token: fresh);
+        } on ApiException catch (retryError) {
+          if (retryError.isUnauthorized) await onUnauthorized?.call(retryError);
+          rethrow;
+        }
+      }
+      await onUnauthorized?.call(error);
+      rethrow;
+    }
+  }
+
+  Future<ApiEnvelope> _sendOnce(
+    String method,
+    String path, {
+    required Map<String, String>? query,
+    required Map<String, dynamic>? body,
+    required AuthMode auth,
+    required String? token,
+  }) async {
     try {
       final Uri uri = AppEnv.resolve(path).replace(
         queryParameters: query == null || query.isEmpty ? null : query,
       );
+      if (AppEnv.isDevelopment) {
+        // ignore: avoid_print
+        print('[api] → $method $uri');
+      }
       final http.Request request = http.Request(method, uri);
       request.headers['Accept'] = 'application/json';
       if (auth != AuthMode.none && token != null && token.isNotEmpty) {
@@ -92,10 +128,7 @@ class ApiClient {
       final http.StreamedResponse streamed =
           await _http.send(request).timeout(_timeout);
       final http.Response response = await http.Response.fromStream(streamed);
-      return _parse(
-        response,
-        hadToken: token != null && token.isNotEmpty && auth != AuthMode.none,
-      );
+      return _parse(response);
     } on TimeoutException {
       throw const TimeoutApiException();
     } on SocketException {
@@ -113,17 +146,7 @@ class ApiClient {
     }
   }
 
-  Future<ApiEnvelope> _parse(
-    http.Response response, {
-    required bool hadToken,
-  }) async {
-    if (AppEnv.isDevelopment) {
-      // ignore: avoid_print
-      print(
-        '[api] ${response.request?.method} ${response.request?.url.path} '
-        '→ ${response.statusCode}',
-      );
-    }
+  ApiEnvelope _parse(http.Response response) {
     if (response.body.isEmpty) {
       throw ApiException(
         statusCode: response.statusCode,
@@ -133,14 +156,15 @@ class ApiClient {
     }
     final ApiEnvelope envelope =
         ApiEnvelope.parse(response.body, response.statusCode);
-    try {
-      envelope.throwIfError(response.statusCode);
-    } on ApiException catch (error) {
-      if (hadToken && error.isUnauthorized) {
-        await onUnauthorized?.call(error);
-      }
-      rethrow;
+    if (AppEnv.isDevelopment) {
+      // ignore: avoid_print
+      print(
+        '[api] ${response.request?.method} ${response.request?.url.path} '
+        '→ ${response.statusCode}'
+        '${envelope.errorCode == null ? '' : ' ${envelope.errorCode}'}',
+      );
     }
+    envelope.throwIfError(response.statusCode);
     return envelope;
   }
 }

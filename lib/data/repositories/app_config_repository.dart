@@ -14,11 +14,21 @@ class AppConfigRepository {
 
   Future<AppConfig>? _configInFlight;
 
-  Future<AppConfig> loadConfig({bool force = false}) {
+  Future<AppConfig> loadConfig({bool force = false}) async {
     if (force) {
       _configInFlight = null;
     }
-    return _configInFlight ??= _configApi.fetch();
+    final Future<AppConfig> pending =
+        _configInFlight ??= _configApi.fetch();
+    try {
+      return await pending;
+    } catch (_) {
+      // Do not keep a failed Future — otherwise Retry never re-fetches.
+      if (identical(_configInFlight, pending)) {
+        _configInFlight = null;
+      }
+      rethrow;
+    }
   }
 
   Future<List<Announcement>> loadAnnouncements() {

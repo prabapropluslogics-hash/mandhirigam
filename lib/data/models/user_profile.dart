@@ -6,12 +6,15 @@ class UserProfile {
     required this.name,
     required this.email,
     this.profileImageUrl,
+    this.firebaseUid,
   });
 
+  /// Mantirigam backend user id.
   final String id;
   final String name;
   final String email;
   final String? profileImageUrl;
+  final String? firebaseUid;
 
   String get initials {
     final String trimmed = name.trim();
@@ -22,12 +25,28 @@ class UserProfile {
     return '${parts.first[0]}${parts.last[0]}'.toUpperCase();
   }
 
+  UserProfile copyWith({
+    String? name,
+    String? email,
+    String? profileImageUrl,
+    String? firebaseUid,
+  }) {
+    return UserProfile(
+      id: id,
+      name: name ?? this.name,
+      email: email ?? this.email,
+      profileImageUrl: profileImageUrl ?? this.profileImageUrl,
+      firebaseUid: firebaseUid ?? this.firebaseUid,
+    );
+  }
+
   factory UserProfile.fromJson(Map<String, dynamic> json) {
     return UserProfile(
       id: asString(json['id']),
       name: asString(json['name']),
       email: asString(json['email']),
       profileImageUrl: asStringOrNull(json['profileImageUrl']),
+      firebaseUid: asStringOrNull(json['firebaseUid']),
     );
   }
 
@@ -37,6 +56,7 @@ class UserProfile {
       'name': name,
       'email': email,
       'profileImageUrl': profileImageUrl,
+      'firebaseUid': firebaseUid,
     };
   }
 }

@@ -57,6 +57,18 @@ class ApiException implements Exception {
         return 'This email is already linked to another Google account.';
       case 'GOOGLE_TOKEN_INVALID':
         return 'Google sign-in could not be verified. Please try again.';
+      case 'GOOGLE_AUTH_FAILED':
+        return 'Our server could not complete Google sign-in. Please try again in a moment.';
+      case 'GOOGLE_SIGN_IN_FAILED':
+        return message.isEmpty
+            ? 'Google sign-in could not be completed. Please try again.'
+            : message;
+      case 'FIREBASE_CREDENTIAL_INVALID':
+        return 'Your Google sign-in expired. Please try again.';
+      case 'FIREBASE_ACCOUNT_CONFLICT':
+        return 'This email is already registered with a different sign-in method.';
+      case 'FIREBASE_AUTH_FAILED':
+        return 'Sign-in could not be completed. Please try again.';
       case 'BOOK_NOT_FOUND':
       case 'CHAPTER_NOT_FOUND':
         return 'This title is no longer available.';

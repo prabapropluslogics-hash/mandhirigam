@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 
 import '../data/models/app_config.dart';
 import '../data/repositories/app_config_repository.dart';
@@ -9,11 +10,17 @@ import '../data/repositories/payments_repository.dart';
 import '../data/services/app_config_api.dart';
 import '../data/services/auth_api.dart';
 import '../data/services/books_api.dart';
+import '../data/services/firebase_auth_gateway.dart';
 import '../data/services/google_auth_gateway.dart';
 import '../data/services/library_api.dart';
 import '../data/services/payments_api.dart';
 import '../data/services/razorpay_checkout.dart';
 import '../design_system/theme/app_colors.dart';
+import '../features/home/state/home_language_preference.dart';
+import '../features/reader/state/reader_preferences.dart';
+import '../services/deep_link_service.dart';
+import '../services/local_preferences.dart';
+import '../services/share_service.dart';
 import '../state/app_config_controller.dart';
 import '../state/auth_controller.dart';
 import '../state/catalog_controller.dart';
@@ -34,6 +41,11 @@ class AppContainer {
     required this.libraryController,
     required this.paymentController,
     required this.booksRepository,
+    required this.localPreferences,
+    required this.readerPreferences,
+    required this.homeLanguage,
+    required this.shareService,
+    required this.deepLinks,
   });
 
   final ApiClient apiClient;
@@ -44,18 +56,30 @@ class AppContainer {
   final LibraryController libraryController;
   final PaymentController paymentController;
   final BooksRepository booksRepository;
+  final LocalPreferences localPreferences;
+  final ReaderPreferences readerPreferences;
+  final HomeLanguagePreference homeLanguage;
+  final ShareService shareService;
+  final DeepLinkService deepLinks;
 
   static AppContainer create({
     ApiClient? apiClient,
+    http.Client? httpClient,
     SessionStore? sessionStore,
     GoogleAuthGateway? googleAuth,
+    FirebaseAuthGateway? firebaseAuth,
     CheckoutGateway? checkout,
+    LocalPreferences? localPreferences,
+    DeepLinkSource? deepLinkSource,
   }) {
+    final LocalPreferences preferences = localPreferences ?? LocalPreferences();
     final SessionStore store = sessionStore ?? SessionStore();
     late final AuthController auth;
     final ApiClient client = apiClient ??
         ApiClient(
+          httpClient: httpClient,
           readAccessToken: store.readAccessToken,
+          refreshAccessToken: () => auth.refreshAccessToken(),
           onUnauthorized: (ApiException error) => auth.handleUnauthorized(error),
         );
     auth = AuthController(
@@ -63,6 +87,7 @@ class AppContainer {
         api: AuthApi(client),
         sessionStore: store,
         googleAuth: googleAuth ?? GoogleSignInGateway(),
+        firebaseAuth: firebaseAuth ?? FirebaseAuthService(),
       ),
     );
     final BooksRepository books = BooksRepository(BooksApi(client));
@@ -85,6 +110,14 @@ class AppContainer {
         ),
       ),
       booksRepository: books,
+      localPreferences: preferences,
+      readerPreferences: ReaderPreferences(preferences),
+      homeLanguage: HomeLanguagePreference(preferences),
+      shareService: ShareService(),
+      deepLinks: DeepLinkService(
+        preferences: preferences,
+        source: deepLinkSource,
+      ),
     );
   }
 

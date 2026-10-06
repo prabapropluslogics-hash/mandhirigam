@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:maanthirigam/app/maanthirigam_app.dart';
 import 'package:maanthirigam/core/app_container.dart';
+import 'package:maanthirigam/design_system/components/navigation/app_tab_bar.dart';
 
 import 'support/scripted_http.dart';
 import 'support/test_container.dart';
@@ -75,6 +76,10 @@ void main() {
     await tester.tap(find.text('Tirukkural Wisdom').first);
     await tester.pumpAndSettle();
     expect(find.text('Read now'), findsOneWidget);
+    await tester.tap(
+      find.descendant(of: find.byType(AppTabBar), matching: find.text('Chapters')),
+    );
+    await tester.pumpAndSettle();
     expect(find.text('Opening'), findsOneWidget);
 
     await tester.tap(find.byTooltip('Back'));
@@ -82,7 +87,7 @@ void main() {
 
     await tester.tap(find.byTooltip('Library'));
     await tester.pumpAndSettle();
-    expect(find.text('Sign in to see your library'), findsOneWidget);
+    expect(find.text('Your library is waiting for you'), findsOneWidget);
 
     await tester.tap(find.byTooltip('Profile'));
     await tester.pumpAndSettle();

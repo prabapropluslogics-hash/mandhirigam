@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
+import '../../core/config/app_env.dart';
 import '../../core/errors/api_exception.dart';
 import '../../core/utils/version_compare.dart';
 import '../../data/models/announcement.dart';
@@ -58,12 +59,35 @@ class AppConfigController extends ChangeNotifier {
       );
       loaded = true;
     } on ApiException catch (error) {
-      errorMessage = error.userMessage;
+      errorMessage = _describeStartupFailure(error);
     } catch (_) {
-      errorMessage = 'Could not load app configuration.';
+      errorMessage = _describeStartupFailure(
+        const ApiException(
+          statusCode: 0,
+          code: 'INTERNAL_ERROR',
+          message: 'Could not load app configuration.',
+        ),
+      );
     } finally {
       loading = false;
       notifyListeners();
     }
+  }
+
+  /// Startup fails on `GET /app-config` (then optionally announcements).
+  String _describeStartupFailure(ApiException error) {
+    final String target = AppEnv.resolve('/app-config').toString();
+    if (error.code == 'TIMEOUT' || error.code == 'NETWORK_ERROR') {
+      if (AppEnv.isEmulatorOrLocalHost) {
+        return 'Cannot reach $target.\n\n'
+            'This build is still using the Android emulator default '
+            '(${AppEnv.apiBaseUrl}). A physical device cannot reach that host.\n\n'
+            'Run with your Render API, for example:\n'
+            'flutter run --dart-define=API_BASE_URL='
+            'https://YOUR-SERVICE.onrender.com/api/v1';
+      }
+      return '${error.userMessage}\n\nCould not reach $target';
+    }
+    return error.userMessage;
   }
 }

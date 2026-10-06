@@ -5,18 +5,21 @@ import 'package:provider/provider.dart';
 
 import '../../../../core/utils/open_url.dart';
 import '../../../../core/utils/version_compare.dart';
-import '../../../../data/models/app_config.dart';
 import '../../../../design_system/components/buttons/app_button.dart';
 import '../../../../design_system/components/feedback/app_loader.dart';
 import '../../../../design_system/components/layout/app_gap.dart';
-import '../../../../design_system/components/layout/app_scaffold.dart';
-import '../../../../design_system/theme/app_spacing.dart';
+import '../../../../design_system/theme/app_colors.dart';
+import '../../../../design_system/theme/app_sizes.dart';
 import '../../../../design_system/theme/app_typography.dart';
 import '../../../../routing/app_router.dart';
 import '../../../../routing/app_routes.dart';
 import '../../../../state/app_config_controller.dart';
 import '../../../../state/auth_controller.dart';
 import '../../../../state/catalog_controller.dart';
+import '../widgets/splash_brand.dart';
+import '../widgets/splash_content.dart';
+import '../widgets/splash_frame.dart';
+import '../widgets/splash_intro.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -27,6 +30,7 @@ class SplashScreen extends StatefulWidget {
 
 class _SplashScreenState extends State<SplashScreen> {
   bool _starting = false;
+  bool _firstConfigAttempt = true;
 
   @override
   void initState() {
@@ -40,7 +44,8 @@ class _SplashScreenState extends State<SplashScreen> {
     final AuthController auth = context.read<AuthController>();
     final AppConfigController config = context.read<AppConfigController>();
     await auth.restore();
-    await config.load();
+    await config.load(force: !_firstConfigAttempt);
+    _firstConfigAttempt = false;
     if (!mounted) return;
     if (config.errorMessage != null) {
       setState(() => _starting = false);
@@ -89,51 +94,47 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   Widget build(BuildContext context) {
     final AppConfigController config = context.watch<AppConfigController>();
-    final BrandingConfig branding = config.config.branding;
 
     if (config.loaded && config.updateKind == AppUpdateKind.required) {
       return _ForceUpdateView(config: config);
     }
 
-    return AppScaffold(
-      body: Padding(
-        padding: AppInsets.page,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              branding.appName.isEmpty ? 'Mantirigam' : branding.appName,
-              style: AppTypography.display(context),
-              textAlign: TextAlign.center,
+    return Scaffold(
+      backgroundColor: AppColors.splashBase,
+      body: SplashIntro(
+        builder: (BuildContext context, Animation<double> progress) {
+          return SplashFrame(
+            progress: progress,
+            child: SplashContent(
+              progress: progress,
+              status: config.errorMessage != null
+                  ? Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          config.errorMessage!,
+                          style: AppTypography.helper(context),
+                          textAlign: TextAlign.center,
+                        ),
+                        const AppGap.lg(),
+                        AppButton(
+                          label: 'Retry',
+                          isExpanded: false,
+                          onPressed: () {
+                            setState(() => _starting = false);
+                            _bootstrap();
+                          },
+                        ),
+                      ],
+                    )
+                  : const AppLoader(
+                      size: AppSizes.iconMd,
+                      strokeWidth: AppSizes.loaderStrokeWidthCompact,
+                      color: AppColors.brandPrimary,
+                    ),
             ),
-            if (branding.tagline.isNotEmpty) ...[
-              const AppGap.sm(),
-              Text(
-                branding.tagline,
-                style: AppTypography.helper(context),
-                textAlign: TextAlign.center,
-              ),
-            ],
-            const AppGap.xxl(),
-            if (config.errorMessage != null) ...[
-              Text(
-                config.errorMessage!,
-                style: AppTypography.helper(context),
-                textAlign: TextAlign.center,
-              ),
-              const AppGap.lg(),
-              AppButton(
-                label: 'Retry',
-                isExpanded: false,
-                onPressed: () {
-                  setState(() => _starting = false);
-                  _bootstrap();
-                },
-              ),
-            ] else
-              const AppLoader(),
-          ],
-        ),
+          );
+        },
       ),
     );
   }
@@ -146,12 +147,15 @@ class _ForceUpdateView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return AppScaffold(
-      body: Padding(
-        padding: AppInsets.page,
+    return Scaffold(
+      backgroundColor: AppColors.splashBase,
+      body: SplashFrame(
+        progress: kAlwaysCompleteAnimation,
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
           children: [
+            const SplashEmblem(size: 56),
+            const AppGap.xl(),
             Text('Update required', style: AppTypography.pageTitle(context)),
             const AppGap.md(),
             Text(
@@ -164,7 +168,8 @@ class _ForceUpdateView extends StatelessWidget {
             const AppGap.xxl(),
             AppButton(
               label: 'Update now',
-              onPressed: () => openSafeHttpUrl(config.platformUpdate.storeUrl),
+              onPressed: () =>
+                  openSafeHttpUrl(config.platformUpdate.storeUrl),
             ),
           ],
         ),

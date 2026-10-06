@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:razorpay_flutter/razorpay_flutter.dart';
 
@@ -56,11 +57,16 @@ class RazorpayCheckoutGateway implements CheckoutGateway {
     });
     _razorpay.on(Razorpay.EVENT_PAYMENT_ERROR, (PaymentFailureResponse response) {
       if (completer.isCompleted) return;
-      final String message = response.message ?? 'Payment was not completed.';
-      if (message.toLowerCase().contains('cancel')) {
+      final String raw = response.message ?? '';
+      if (response.code == Razorpay.PAYMENT_CANCELLED ||
+          raw.toLowerCase().contains('cancel')) {
         completer.completeError(const CheckoutCancelled());
+      } else if (response.code == Razorpay.NETWORK_ERROR) {
+        completer.completeError(
+          const CheckoutFailed('Check your connection and try again.'),
+        );
       } else {
-        completer.completeError(CheckoutFailed(message));
+        completer.completeError(CheckoutFailed(_describeFailure(raw)));
       }
       clear();
     });
@@ -86,5 +92,21 @@ class RazorpayCheckoutGateway implements CheckoutGateway {
   @override
   void dispose() {
     _razorpay.clear();
+  }
+
+  /// Razorpay often reports failures as a JSON string; show its description.
+  static String _describeFailure(String raw) {
+    const String fallback = 'Payment was not completed. Please try again.';
+    if (raw.trim().isEmpty) return fallback;
+    try {
+      final Object? decoded = jsonDecode(raw);
+      if (decoded is Map && decoded['error'] is Map) {
+        final Object? description = (decoded['error'] as Map)['description'];
+        if (description is String && description.isNotEmpty) return description;
+      }
+      return fallback;
+    } on FormatException {
+      return raw;
+    }
   }
 }

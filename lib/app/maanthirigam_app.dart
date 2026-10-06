@@ -6,6 +6,8 @@ import '../core/app_container.dart';
 import '../core/constants/app_constants.dart';
 import '../design_system/theme/app_colors.dart';
 import '../design_system/theme/app_theme.dart';
+import '../features/home/state/home_language_preference.dart';
+import '../features/reader/state/reader_preferences.dart';
 import '../routing/app_router.dart';
 import '../routing/app_routes.dart';
 import '../state/app_config_controller.dart';
@@ -26,25 +28,48 @@ class _MaanthirigamAppState extends State<MaanthirigamApp> {
   void initState() {
     super.initState();
     widget.container.authController.addListener(_onAuthChanged);
+    widget.container.readerPreferences.load();
+    widget.container.homeLanguage.load();
+    widget.container.deepLinks.start(AppRouter.navigatorKey);
   }
 
   @override
   void dispose() {
     widget.container.authController.removeListener(_onAuthChanged);
+    widget.container.deepLinks.dispose();
     super.dispose();
   }
 
+  final CurrentRouteObserver _routeObserver = CurrentRouteObserver();
+  late final List<NavigatorObserver> _navigatorObservers = <NavigatorObserver>[
+    _routeObserver,
+    widget.container.deepLinks.observer,
+  ];
+  bool _wasAuthenticated = false;
+
+  /// Keeps entitlements in step with the session and, when the session
+  /// expires, asks for sign-in on top of the current screen so the user's
+  /// place (e.g. a book) is kept.
   void _onAuthChanged() {
     final AuthController auth = widget.container.authController;
+    final LibraryController library = widget.container.libraryController;
+    if (auth.isAuthenticated != _wasAuthenticated) {
+      _wasAuthenticated = auth.isAuthenticated;
+      if (auth.isAuthenticated) {
+        library.refresh();
+      } else {
+        library.clearLocal();
+      }
+    }
     if (!auth.sessionExpired) return;
     auth.consumeSessionExpired();
-    widget.container.libraryController.clearLocal();
     final NavigatorState? nav = AppRouter.navigatorKey.currentState;
     if (nav == null) return;
-    nav.pushNamedAndRemoveUntil(AppRoutes.home, (Route<dynamic> route) => false);
+    final String? current = _routeObserver.currentName;
+    if (current == AppRoutes.login || current == AppRoutes.splash) return;
     nav.pushNamed(
       AppRoutes.login,
-      arguments: 'Please sign in again to continue.',
+      arguments: 'Your session ended. Please sign in again to continue.',
     );
   }
 
@@ -64,6 +89,12 @@ class _MaanthirigamAppState extends State<MaanthirigamApp> {
           value: widget.container.libraryController,
         ),
         ChangeNotifierProvider.value(value: widget.container.paymentController),
+        ChangeNotifierProvider<ReaderPreferences>.value(
+          value: widget.container.readerPreferences,
+        ),
+        ChangeNotifierProvider<HomeLanguagePreference>.value(
+          value: widget.container.homeLanguage,
+        ),
       ],
       child: Consumer<AppConfigController>(
         builder: (BuildContext context, AppConfigController config, _) {
@@ -88,6 +119,7 @@ class _MaanthirigamAppState extends State<MaanthirigamApp> {
               darkTheme: AppTheme.dark(branding: branding),
               themeMode: ThemeMode.dark,
               navigatorKey: AppRouter.navigatorKey,
+              navigatorObservers: _navigatorObservers,
               initialRoute: AppRoutes.splash,
               onGenerateRoute: AppRouter.onGenerateRoute,
             ),

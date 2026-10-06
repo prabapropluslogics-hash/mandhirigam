@@ -1,32 +1,37 @@
 # Maanthirigam
 
-Flutter mobile application — **UI foundation only** (screens and backend integrations come later).
+Flutter mobile app for Mantirigam, integrated with the backend contract in
+`Docs/MOBILE_APP_INTEGRATION.md`.
 
-## Architecture
+## API base URL
+
+Default (production Render):
 
 ```text
-lib/
-  app/                 # App root, bootstrap
-  core/                # Non-UI shared constants/utils/extensions
-  design_system/       # Theme tokens + reusable UI components
-  routing/             # Centralized routes & navigator
-  features/            # Feature modules (screens + feature widgets)
-  shared/              # Cross-feature non-primitive widgets
-assets/
-  images/ icons/ fonts/
+https://mandhirigam-admin.onrender.com/api/v1
 ```
 
-**Rule:** If a UI pattern appears more than once (or is likely to), implement it as a reusable component under `design_system/` instead of duplicating it.
+Startup request:
 
-## Screen workflow
+```text
+GET https://mandhirigam-admin.onrender.com/api/v1/app-config
+```
 
-Screenshot/Design → UI analysis → reusable components → screen implementation.
-
-## Verify
+## Run
 
 ```bash
 flutter pub get
-flutter analyze
-flutter test
 flutter run
+```
+
+Optional: copy `dart_defines.example.json` → `dart_defines.json` and launch with:
+
+```bash
+flutter run --dart-define-from-file=dart_defines.json
+```
+
+Local Android emulator against a PC backend:
+
+```bash
+flutter run --dart-define=API_BASE_URL=http://10.0.2.2:5050/api/v1
 ```

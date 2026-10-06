@@ -61,6 +61,54 @@ abstract final class AppColors {
   static const Color avatarFallback = Color(0xFF6E5A9E);
 
   // ---------------------------------------------------------------------------
+  // Semantic — splash / launch
+  // `splashBase` must match android res/values/colors.xml (splash_background)
+  // and the iOS LaunchScreen background so there is no flash between them.
+  // ---------------------------------------------------------------------------
+  static const Color splashBase = Color(0xFF0B0A09);
+  static const Color splashCharcoal = Color(0xFF17130E);
+  static const Color splashDeep = Color(0xFF040303);
+  static const Color splashGlow = brandPrimary;
+  static const Color splashTagline = Color(0xFFE9DFCB);
+
+  // ---------------------------------------------------------------------------
+  // Reader — "Modern Olaichuvadi" parchment, plus the Dark and Light variants
+  // ---------------------------------------------------------------------------
+  static const Color readerParchment = Color(0xFFEFE0BC);
+  static const Color readerParchmentDeep = Color(0xFFE0C694);
+  static const Color readerParchmentEdge = Color(0xFFBF8E52);
+  static const Color readerBurn = Color(0xFF5E3A1A);
+  static const Color readerStain = Color(0xFFAE7F47);
+  static const Color readerInk = Color(0xFF2B1B0E);
+  static const Color readerInkSoft = Color(0xFF5A432D);
+  static const Color readerGoldDeep = Color(0xFF7E5A28);
+  static const Color readerRule = Color(0xFF9C7444);
+  static const Color readerFibre = Color(0xFF7A5C3A);
+
+  /// Light icons and text on the dark reader chrome.
+  static const Color readerChromeIcon = Color(0xFFE6DAC2);
+  static const Color readerChromeButton = Color(0xFF1A1714);
+
+  /// Dark app chrome around the reading page (all reader themes).
+  static const Color readerChrome = Color(0xFF0D0D0D);
+
+  static const Color readerDark = Color(0xFF1B1712);
+  static const Color readerDarkDeep = Color(0xFF15120E);
+
+  static const Color readerLight = Color(0xFFFBF8F2);
+  static const Color readerLightDeep = Color(0xFFF4EFE5);
+  static const Color readerLightInk = Color(0xFF1F1A14);
+  static const Color readerLightAccent = Color(0xFF94702F);
+
+  // ---------------------------------------------------------------------------
+  // Third-party marks — Google "G" (fixed by Google's sign-in branding rules)
+  // ---------------------------------------------------------------------------
+  static const Color googleBlue = Color(0xFF4285F4);
+  static const Color googleRed = Color(0xFFEA4335);
+  static const Color googleYellow = Color(0xFFFBBC05);
+  static const Color googleGreen = Color(0xFF34A853);
+
+  // ---------------------------------------------------------------------------
   // Semantic — text
   // ---------------------------------------------------------------------------
   static const Color textPrimary = Color(0xFF141414);
