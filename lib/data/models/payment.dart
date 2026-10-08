@@ -13,6 +13,13 @@ class CreateOrderResult {
   final String currency;
   final String keyId;
 
+  CreateOrderResult withKey(String key) => CreateOrderResult(
+        orderId: orderId,
+        amount: amount,
+        currency: currency,
+        keyId: key,
+      );
+
   factory CreateOrderResult.fromJson(Map<String, dynamic> json) {
     return CreateOrderResult(
       orderId: asString(json['orderId']),
@@ -40,6 +47,14 @@ class PaymentStatusResult {
       status.toUpperCase() == 'CAPTURED' &&
       purchaseStatus.toUpperCase() == 'SUCCESS' &&
       entitled;
+
+  /// The gateway or backend reports a final, unsuccessful outcome.
+  bool get isFinalFailure {
+    final String payment = status.toUpperCase();
+    return payment == 'FAILED' ||
+        payment == 'REFUNDED' ||
+        purchaseStatus.toUpperCase() == 'FAILED';
+  }
 
   factory PaymentStatusResult.fromJson(Map<String, dynamic> json) {
     return PaymentStatusResult(

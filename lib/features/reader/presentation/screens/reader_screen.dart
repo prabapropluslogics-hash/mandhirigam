@@ -7,6 +7,7 @@ import '../../../../core/errors/api_exception.dart';
 import '../../../../core/security/screen_security.dart';
 import '../../../../data/models/catalog_book.dart';
 import '../../../../data/models/chapter.dart';
+import '../../../../data/models/rich_text_document.dart';
 import '../../../../design_system/components/buttons/app_button.dart';
 import '../../../../design_system/components/buttons/app_icon_button.dart';
 import '../../../../design_system/components/feedback/app_empty_state.dart';
@@ -307,9 +308,10 @@ class _ReaderScreenState extends State<ReaderScreen> {
     }
     final ReadingStyle style = palette.readingStyle(prefs);
     final double side = prefs.width.sidePadding;
+    final List<RichTextBlock> blocks = visibleBlocks(chapter.content);
     return Scrollbar(
       controller: _scroll,
-      child: ListView(
+      child: ListView.builder(
         key: ValueKey<String>('reader-content-${chapter.id}'),
         controller: _scroll,
         padding: EdgeInsets.fromLTRB(
@@ -318,6 +320,47 @@ class _ReaderScreenState extends State<ReaderScreen> {
           side,
           AppSpacing.huge,
         ),
+        itemCount: blocks.length + 1,
+        itemBuilder: (BuildContext context, int index) {
+          if (index == 0) {
+            return _ChapterHeading(
+              chapter: chapter,
+              palette: palette,
+              prefs: prefs,
+              style: style,
+            );
+          }
+          final RichTextBlock block = blocks[index - 1];
+          return RichTextBlockItem(
+            key: richTextBlockKey(block, index - 1),
+            block: block,
+            style: style,
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _ChapterHeading extends StatelessWidget {
+  const _ChapterHeading({
+    required this.chapter,
+    required this.palette,
+    required this.prefs,
+    required this.style,
+  });
+
+  final ChapterContent chapter;
+  final ReaderPalette palette;
+  final ReaderPreferences prefs;
+  final ReadingStyle style;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.only(bottom: style.blockSpacing * 1.2),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text(
             'Chapter ${chapter.chapterNumber}',
@@ -341,8 +384,6 @@ class _ReaderScreenState extends State<ReaderScreen> {
               ).copyWith(height: 1.45),
             ),
           ),
-          SizedBox(height: style.blockSpacing * 1.2),
-          RichTextDocumentView(document: chapter.content, style: style),
         ],
       ),
     );

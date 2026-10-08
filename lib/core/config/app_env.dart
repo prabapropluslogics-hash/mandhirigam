@@ -28,6 +28,15 @@ abstract final class AppEnv {
     'APP_SHARE_BASE_URL',
   );
 
+  /// Public Razorpay **test** Key ID (`rzp_test_…`) for development builds.
+  /// Optional. Orders are created by the backend, whose key pair decides
+  /// test or live; when set, development builds refuse any other key so a
+  /// misconfigured backend cannot open a real (live) checkout. Never put the
+  /// Key Secret here — it belongs only on the backend.
+  static const String razorpayTestKeyId = String.fromEnvironment(
+    'RAZORPAY_TEST_KEY_ID',
+  );
+
   static const bool isDevelopment = bool.fromEnvironment(
     'DEV',
     defaultValue: true,

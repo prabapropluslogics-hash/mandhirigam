@@ -1,4 +1,9 @@
+import 'package:flutter/foundation.dart';
+
 import '../../core/utils/json_map.dart';
+import 'rich_text_media.dart';
+
+export 'rich_text_media.dart';
 
 class RichTextDocument {
   const RichTextDocument({
@@ -7,6 +12,9 @@ class RichTextDocument {
   });
 
   final int version;
+
+  /// Blocks in reading order. Unknown block types and media blocks without
+  /// a usable URL are left out, so one bad block never breaks a chapter.
   final List<RichTextBlock> blocks;
 
   factory RichTextDocument.fromJson(Map<String, dynamic> json) {
@@ -14,8 +22,20 @@ class RichTextDocument {
     final List<RichTextBlock> blocks = <RichTextBlock>[];
     if (blocksRaw is List) {
       for (final Object? item in blocksRaw) {
-        if (item is Map) {
-          blocks.add(RichTextBlock.fromJson(Map<String, dynamic>.from(item)));
+        if (item is! Map) continue;
+        final RichTextBlock block;
+        try {
+          block = RichTextBlock.fromJson(Map<String, dynamic>.from(item));
+        } catch (_) {
+          _skipped('malformed block');
+          continue;
+        }
+        if (!block.isKnownType) {
+          _skipped('unsupported block type');
+        } else if (block.isMedia && block.media == null) {
+          _skipped('${block.type} block without a usable url');
+        } else {
+          blocks.add(block);
         }
       }
     }
@@ -23,6 +43,10 @@ class RichTextDocument {
       version: asInt(json['version'], 1),
       blocks: blocks,
     );
+  }
+
+  static void _skipped(String reason) {
+    if (kDebugMode) debugPrint('Rich text: skipped $reason');
   }
 }
 
@@ -67,6 +91,7 @@ class RichTextBlock {
     this.level,
     this.marks = const <RichTextMark>[],
     this.items = const <RichTextListItem>[],
+    this.media,
   });
 
   final String id;
@@ -76,11 +101,36 @@ class RichTextBlock {
   final List<RichTextMark> marks;
   final List<RichTextListItem> items;
 
-  bool get isParagraph => type == 'paragraph';
-  bool get isHeading => type == 'heading';
-  bool get isBulletList => type == 'bullet_list';
-  bool get isOrderedList => type == 'ordered_list';
-  bool get isQuote => type == 'quote';
+  /// Set for `image`, `audio` and `video` blocks with a usable URL.
+  final RichTextMedia? media;
+
+  bool get isParagraph => type == RichTextBlockType.paragraph;
+  bool get isHeading => type == RichTextBlockType.heading;
+  bool get isBulletList => type == RichTextBlockType.bulletList;
+  bool get isOrderedList => type == RichTextBlockType.orderedList;
+  bool get isQuote => type == RichTextBlockType.quote;
+  bool get isImage => type == RichTextBlockType.image;
+  bool get isAudio => type == RichTextBlockType.audio;
+  bool get isVideo => type == RichTextBlockType.video;
+
+  bool get isText => RichTextBlockType.text.contains(type);
+  bool get isMedia => RichTextBlockType.media.contains(type);
+  bool get isKnownType => isText || isMedia;
+
+  RichTextImage? get image {
+    final RichTextMedia? media = this.media;
+    return media is RichTextImage ? media : null;
+  }
+
+  RichTextAudio? get audio {
+    final RichTextMedia? media = this.media;
+    return media is RichTextAudio ? media : null;
+  }
+
+  RichTextVideo? get video {
+    final RichTextMedia? media = this.media;
+    return media is RichTextVideo ? media : null;
+  }
 
   factory RichTextBlock.fromJson(Map<String, dynamic> json) {
     final Object? marksRaw = json['marks'];
@@ -101,13 +151,15 @@ class RichTextBlock {
         }
       }
     }
+    final String type = asString(json['type'], RichTextBlockType.paragraph);
     return RichTextBlock(
       id: asString(json['id']),
-      type: asString(json['type']),
+      type: type,
       text: asString(json['text']),
       level: json['level'] == null ? null : asInt(json['level']),
       marks: marks,
       items: items,
+      media: RichTextMedia.fromBlock(type, json),
     );
   }
 }

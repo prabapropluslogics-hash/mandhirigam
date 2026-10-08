@@ -72,19 +72,59 @@ Screens that need an account call `requireSignIn` (`features/auth/presentation/r
 
 ## Book access
 
-`BookAccess` (`state/book_access.dart`) is the single source for the Book Details CTA: free → "Read now"; paid and owned → "Read now"; paid and not owned → "Buy now". Signing in happens when the button is tapped; "Sign in to …" is never the CTA. Ownership comes from `GET /library` (all pages), loaded whenever the user becomes signed in (startup restore or login) and cleared on logout. Free books need sign-in unless app-config `guestAccess.allowGuestFreeBookReading` is true.
+`BookAccess` (`state/book_access.dart`) is the single source for the Book Details CTA: free → "Read now"; paid and owned → "Read now"; paid and not owned → "Buy for ₹X" (or "Buy now" when no price is set). Signing in happens when the button is tapped; "Sign in to …" is never the CTA. Ownership comes from `GET /library` (all pages), loaded whenever the user becomes signed in (startup restore or login) and cleared on logout. Free books need sign-in unless app-config `guestAccess.allowGuestFreeBookReading` is true.
 
 ## Payment
 
-Create-order amount/key/orderId open Razorpay. Checkout success is not ownership. `POST /payments/verify` is authoritative; after a verified purchase the book is marked owned and the library reloaded, and the user stays on Book Details, whose CTA becomes "Read now". Cancel shows a snackbar on the same page. Failure / pending opens a sheet with "Try again" / "Check payment status" (payment status endpoint). `BOOK_ALREADY_OWNED` is treated as owned. While an order is created, checkout is open, or verification runs, a non-dismissible progress card follows `PaymentController.phase`; it shows "Test mode" when the backend-provided Razorpay `keyId` starts with `rzp_test_`. Test vs live mode is decided only by the backend keys.
+Flow: Buy → sign in if needed → `POST /payments/create-order` (orderId, amount in paise, currency, public `keyId`) → Razorpay Checkout (`razorpay_flutter` 1.4.6) → `POST /payments/verify` with order ID, payment ID and signature → library refresh → full-screen "Payment Successful" (Read Now / Go to Library).
+
+Checkout success is not ownership. Only a verify / status response with `CAPTURED` + `SUCCESS` + entitlement unlocks the book. Orders are never created in Flutter and the Key Secret is never in the app.
+
+States (`PaymentController.phase`): creatingOrder / checkout → CTA "Processing…"; verifying → "Verifying payment…"; success; pending; failed; cancelled. A non-dismissible progress card is shown while busy.
+
+- Cancelled → sheet "Payment cancelled" with Try Again / Close.
+- Failed before any payment → "Payment unsuccessful" with Try Again / Close.
+- Payment submitted but verify failed by network, `PAYMENT_NOT_CAPTURED`, or `AUTHORIZED`/`CREATED` → "Payment is being verified" with Check Payment Status (re-runs verify, then `GET /payments/:orderId/status`). Try Again is not offered after a payment was submitted, to avoid a double charge.
+- `BOOK_ALREADY_OWNED`, or the book already in the library → no order, goes straight to Read Now.
+- Repeated taps while busy are ignored.
+- User-facing messages are mapped; raw gateway / server text is never shown.
+
+Test keys: the backend decides test vs live through its Razorpay key pair and returns the matching public `keyId`. Optional `RAZORPAY_TEST_KEY_ID` (in `dart_defines.json`) is a dev-only guard (`PaymentKeyPolicy`): in a `DEV` build a `rzp_live_` key, or a key different from `RAZORPAY_TEST_KEY_ID`, is refused; an empty backend key falls back to it. The "TEST MODE" chip shows only in `DEV` builds with an `rzp_test_` key.
+
+Backend requirements: hold the Razorpay **test** Key ID + Key Secret in the test environment; return the public Key ID from create-order; keep verify idempotent; a payment-captured webhook is recommended so pending payments resolve without the app.
+
+Android: `android/app/proguard-rules.pro` holds the Razorpay keep rules (applied automatically by the Flutter Gradle plugin to release builds). iOS: no `Podfile` yet (generated on the first macOS build, which adds `razorpay-pod`); Razorpay on iOS is not build-verified.
 
 ## Reader
 
-Rich Text V1 widgets keyed by `block.id`. Previous/Next and the in-reader chapter list use ordered `chapterNumber`; a slow response for a previously selected chapter is discarded. Reader enables Android `FLAG_SECURE`. Paid content is requested from the backend; `PURCHASE_REQUIRED` shows purchase UI.
+Rich Text V1 widgets keyed by `block.id` (the position when an id is missing). Previous/Next and the in-reader chapter list use ordered `chapterNumber`; a slow response for a previously selected chapter is discarded. Reader enables Android `FLAG_SECURE`. Paid content is requested from the backend; `PURCHASE_REQUIRED` shows purchase UI.
 
 Default theme is "Modern Olaichuvadi" (parchment). Text size, line spacing, theme (Olaichuvadi / Dark / Light) and reading width live in `ReaderPreferences` and are stored only on the device (`LocalPreferences`, keys `maanthirigam.pref.*`, which sign-out does not clear). The same controls appear in the reader sheet and in Settings.
 
 Layout (Variation 1 reference): dark chrome with Back, the book title and Share on top. The page is an aged parchment sheet drawn in code (`ReaderSurface`), with burnt uneven edges, rolled ends and a faint palm frond; it has no images. The bottom bar has "≡ Chapter x/N" (the chapter list), round Previous and Next buttons, a Dark/Olaichuvadi toggle and Reading settings. No reading-progress percentage is shown. Share is always shown. Without `APP_SHARE_BASE_URL` it explains that sharing is unavailable and never builds a link.
+
+The chapter is a lazy list (chapter heading, then one item per block), so long chapters build, and their images load, only near the viewport.
+
+### Chapter media (image now; audio and video prepared)
+
+The backend contract (Rich Text V1) does **not** define media blocks yet ("Media blocks beyond Rich Text V1 types: NOT IMPLEMENTED"). The app is prepared for the shape below: media blocks sit in `content.blocks` between text blocks, with flat fields like the V1 blocks. Only `id`, `type` and an absolute `http(s)` `url` are required; every other field is optional.
+
+```json
+{ "id": "blk_…", "type": "image", "url": "https://…/plate.jpg",
+  "caption": "…", "alt": "…", "width": 1200, "height": 800,
+  "mediaId": "…", "mimeType": "image/jpeg" }
+{ "id": "blk_…", "type": "audio", "url": "https://…/chant.mp3",
+  "title": "…", "caption": "…", "durationSeconds": 95, "mediaId": "…", "mimeType": "audio/mpeg" }
+{ "id": "blk_…", "type": "video", "url": "https://…/clip.mp4", "thumbnailUrl": "https://…/clip.jpg",
+  "title": "…", "caption": "…", "durationSeconds": 42, "width": 1920, "height": 1080,
+  "mediaId": "…", "mimeType": "video/mp4" }
+```
+
+Model: `RichTextBlock.media` (`RichTextImage` / `RichTextAudio` / `RichTextVideo`, in `lib/data/models/rich_text_media.dart`). Unknown block types and media blocks without a usable URL are skipped (a masked note in debug builds only); the rest of the chapter renders.
+
+Visibility: `ReaderContentFeatures` (`lib/core/config/reader_content_features.dart`) has image on, audio off, video off. Audio and video are parsed and kept but have no renderer; turning them on needs one in `RichTextBlockRenderer`.
+
+Images: framed inline at their aspect ratio (`width`/`height` when given, otherwise the image's own, cached per URL so lazily rebuilt items keep their height), with an optional caption, a small loader, and "Image unavailable · Retry" on failure. They load through the shared `cached_network_image` disk cache, decoded at most about the column width (`ResizeImage`). Tapping opens `ReaderImageViewer`: dark full screen, pinch-to-zoom (`InteractiveViewer`), caption, Close at top-right. Close or system back pops only the viewer, so the reader keeps its chapter and scroll position. `alt` is the image's accessibility label ("Image" when absent).
 
 ## Back navigation (Android)
 

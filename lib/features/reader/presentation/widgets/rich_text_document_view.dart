@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/config/reader_content_features.dart';
 import '../../../../data/models/rich_text_document.dart';
 import '../../../../design_system/theme/app_colors.dart';
 import '../../../../design_system/theme/app_spacing.dart';
 import '../../../../design_system/theme/app_typography.dart';
+import 'reader_inline_image.dart';
 
 /// Typography for rendered chapter content. Colors left null follow the
 /// ambient theme.
@@ -59,35 +61,86 @@ class ReadingStyle {
       accentColor ?? Theme.of(context).colorScheme.primary;
 }
 
+/// Blocks of [document] the Reader shows, in order: every text block, and
+/// media blocks whose type is enabled in [features].
+List<RichTextBlock> visibleBlocks(
+  RichTextDocument document, {
+  ReaderContentFeatures features = ReaderContentFeatures.current,
+}) {
+  return document.blocks
+      .where((RichTextBlock block) => isVisibleBlock(block, features))
+      .toList(growable: false);
+}
+
+bool isVisibleBlock(RichTextBlock block, ReaderContentFeatures features) {
+  return switch (block.media) {
+    RichTextImage() => features.readerImageSupport,
+    RichTextAudio() => features.readerAudioSupport,
+    RichTextVideo() => features.readerVideoSupport,
+    null => block.isText,
+  };
+}
+
+/// Key for the block at [index]; falls back to the position when the
+/// backend sent no id.
+Key richTextBlockKey(RichTextBlock block, int index) =>
+    ValueKey<String>(block.id.isEmpty ? 'blk-index-$index' : block.id);
+
 class RichTextDocumentView extends StatelessWidget {
   const RichTextDocumentView({
     super.key,
     required this.document,
     this.style = const ReadingStyle(),
+    this.features = ReaderContentFeatures.current,
   });
 
   final RichTextDocument document;
   final ReadingStyle style;
+  final ReaderContentFeatures features;
 
   @override
   Widget build(BuildContext context) {
+    final List<RichTextBlock> blocks =
+        visibleBlocks(document, features: features);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        for (final RichTextBlock block in document.blocks)
-          KeyedSubtree(
-            key: ValueKey<String>(block.id),
-            child: Padding(
-              padding: EdgeInsets.only(
-                top: block.isHeading ? style.blockSpacing * 0.5 : 0,
-                bottom: block.isHeading
-                    ? style.blockSpacing * 0.6
-                    : style.blockSpacing,
-              ),
-              child: RichTextBlockRenderer(block: block, style: style),
-            ),
+        for (int i = 0; i < blocks.length; i++)
+          RichTextBlockItem(
+            key: richTextBlockKey(blocks[i], i),
+            block: blocks[i],
+            style: style,
           ),
       ],
+    );
+  }
+}
+
+/// One block with the spacing around it, for column or lazy-list layouts.
+class RichTextBlockItem extends StatelessWidget {
+  const RichTextBlockItem({
+    super.key,
+    required this.block,
+    this.style = const ReadingStyle(),
+  });
+
+  final RichTextBlock block;
+  final ReadingStyle style;
+
+  @override
+  Widget build(BuildContext context) {
+    final double spacing = style.blockSpacing;
+    final EdgeInsets padding;
+    if (block.isHeading) {
+      padding = EdgeInsets.only(top: spacing * 0.5, bottom: spacing * 0.6);
+    } else if (block.isMedia) {
+      padding = EdgeInsets.only(top: spacing * 0.4, bottom: spacing * 1.4);
+    } else {
+      padding = EdgeInsets.only(bottom: spacing);
+    }
+    return Padding(
+      padding: padding,
+      child: RichTextBlockRenderer(block: block, style: style),
     );
   }
 }
@@ -104,6 +157,14 @@ class RichTextBlockRenderer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final RichTextImage? image = block.image;
+    if (image != null) {
+      return ReaderInlineImage(image: image, style: style);
+    }
+    if (block.isMedia || !block.isKnownType) {
+      // Audio and video have no renderer in this release.
+      return const SizedBox.shrink();
+    }
     if (block.isHeading) {
       return HeadingBlock(block: block, style: style);
     }

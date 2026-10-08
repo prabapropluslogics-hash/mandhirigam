@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
 
 import 'package:razorpay_flutter/razorpay_flutter.dart';
 
@@ -10,6 +9,7 @@ class CheckoutCancelled implements Exception {
   const CheckoutCancelled();
 }
 
+/// Checkout ended without a payment. [message] is safe to show to users.
 class CheckoutFailed implements Exception {
   const CheckoutFailed(this.message);
   final String message;
@@ -26,10 +26,21 @@ abstract class CheckoutGateway {
   void dispose();
 }
 
+/// Razorpay Standard Checkout through the official `razorpay_flutter`
+/// plugin. Every plugin event completes the returned future exactly once, so
+/// a purchase can never stay waiting. Only the public key reaches the device.
 class RazorpayCheckoutGateway implements CheckoutGateway {
-  RazorpayCheckoutGateway({Razorpay? razorpay}) : _razorpay = razorpay ?? Razorpay();
+  RazorpayCheckoutGateway({Razorpay? razorpay})
+      : _razorpay = razorpay ?? Razorpay();
 
   final Razorpay _razorpay;
+
+  static const String _brandColor = '#C9A36A';
+  static const String failedMessage = 'Your payment could not be completed.';
+  static const String networkMessage =
+      'Please check your internet connection and try again.';
+  static const String walletMessage =
+      'This payment method is not supported here. Please choose another method.';
 
   @override
   Future<CheckoutSuccess> open({
@@ -40,51 +51,63 @@ class RazorpayCheckoutGateway implements CheckoutGateway {
   }) {
     final Completer<CheckoutSuccess> completer = Completer<CheckoutSuccess>();
 
-    void clear() {
+    void finish(void Function() complete) {
+      if (completer.isCompleted) return;
+      complete();
       _razorpay.clear();
     }
 
-    _razorpay.on(Razorpay.EVENT_PAYMENT_SUCCESS, (PaymentSuccessResponse response) {
-      if (completer.isCompleted) return;
-      completer.complete(
-        CheckoutSuccess(
-          razorpayOrderId: response.orderId ?? order.orderId,
-          razorpayPaymentId: response.paymentId ?? '',
-          razorpaySignature: response.signature ?? '',
+    _razorpay.on(Razorpay.EVENT_PAYMENT_SUCCESS,
+        (PaymentSuccessResponse response) {
+      finish(
+        () => completer.complete(
+          CheckoutSuccess(
+            razorpayOrderId: response.orderId ?? order.orderId,
+            razorpayPaymentId: response.paymentId ?? '',
+            razorpaySignature: response.signature ?? '',
+          ),
         ),
       );
-      clear();
     });
-    _razorpay.on(Razorpay.EVENT_PAYMENT_ERROR, (PaymentFailureResponse response) {
-      if (completer.isCompleted) return;
-      final String raw = response.message ?? '';
+    _razorpay.on(Razorpay.EVENT_PAYMENT_ERROR,
+        (PaymentFailureResponse response) {
+      final Object error;
       if (response.code == Razorpay.PAYMENT_CANCELLED ||
-          raw.toLowerCase().contains('cancel')) {
-        completer.completeError(const CheckoutCancelled());
+          (response.message ?? '').toLowerCase().contains('cancel')) {
+        error = const CheckoutCancelled();
       } else if (response.code == Razorpay.NETWORK_ERROR) {
-        completer.completeError(
-          const CheckoutFailed('Check your connection and try again.'),
-        );
+        error = const CheckoutFailed(networkMessage);
       } else {
-        completer.completeError(CheckoutFailed(_describeFailure(raw)));
+        error = const CheckoutFailed(failedMessage);
       }
-      clear();
+      finish(() => completer.completeError(error));
     });
-    _razorpay.on(Razorpay.EVENT_EXTERNAL_WALLET, (_) {});
+    _razorpay.on(Razorpay.EVENT_EXTERNAL_WALLET, (ExternalWalletResponse _) {
+      finish(
+          () => completer.completeError(const CheckoutFailed(walletMessage)));
+    });
 
-    _razorpay.open(<String, Object?>{
-      'key': order.keyId,
-      'amount': order.amount,
-      'currency': order.currency,
-      'order_id': order.orderId,
-      'name': appName,
-      'description': bookTitle,
-      'prefill': <String, String>{
-        if (user != null) 'email': user.email,
-        if (user != null) 'name': user.name,
-      },
-      'theme': <String, String>{'color': '#C9A36A'},
-    });
+    final String email = user?.email.trim() ?? '';
+    final String name = user?.name.trim() ?? '';
+    try {
+      _razorpay.open(<String, Object?>{
+        'key': order.keyId,
+        'order_id': order.orderId,
+        'amount': order.amount,
+        'currency': order.currency,
+        'name': appName,
+        'description': bookTitle,
+        if (email.isNotEmpty || name.isNotEmpty)
+          'prefill': <String, String>{
+            if (email.isNotEmpty) 'email': email,
+            if (name.isNotEmpty) 'name': name,
+          },
+        'theme': <String, String>{'color': _brandColor},
+      });
+    } catch (_) {
+      finish(
+          () => completer.completeError(const CheckoutFailed(failedMessage)));
+    }
 
     return completer.future;
   }
@@ -92,21 +115,5 @@ class RazorpayCheckoutGateway implements CheckoutGateway {
   @override
   void dispose() {
     _razorpay.clear();
-  }
-
-  /// Razorpay often reports failures as a JSON string; show its description.
-  static String _describeFailure(String raw) {
-    const String fallback = 'Payment was not completed. Please try again.';
-    if (raw.trim().isEmpty) return fallback;
-    try {
-      final Object? decoded = jsonDecode(raw);
-      if (decoded is Map && decoded['error'] is Map) {
-        final Object? description = (decoded['error'] as Map)['description'];
-        if (description is String && description.isNotEmpty) return description;
-      }
-      return fallback;
-    } on FormatException {
-      return raw;
-    }
   }
 }

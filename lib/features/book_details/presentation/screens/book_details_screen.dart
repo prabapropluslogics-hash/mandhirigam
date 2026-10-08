@@ -8,6 +8,7 @@ import '../../../../data/models/chapter.dart';
 import '../../../../design_system/components/buttons/app_button.dart';
 import '../../../../design_system/components/buttons/app_button_shared.dart';
 import '../../../../design_system/components/buttons/app_icon_button.dart';
+import '../../../../design_system/components/feedback/app_loader.dart';
 import '../../../../design_system/components/layout/app_gap.dart';
 import '../../../../design_system/components/layout/app_scaffold.dart';
 import '../../../../design_system/components/navigation/app_tab_bar.dart';
@@ -29,6 +30,7 @@ import '../../../../state/app_config_controller.dart';
 import '../../../../state/auth_controller.dart';
 import '../../../../state/book_access.dart';
 import '../../../../state/library_controller.dart';
+import '../../../../state/payment_controller.dart';
 import '../../../auth/presentation/require_sign_in.dart';
 import '../../../payment/presentation/payment_flow.dart';
 import '../widgets/book_info_item.dart';
@@ -149,7 +151,6 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
   }
 
   Future<void> _readOrBuyPaid(CatalogBook book, ChapterSummary? chapter) async {
-    final bool tappedRead = _currentAccess(book).isRead;
     if (!await requireSignIn(context,
         message: 'Sign in to buy ${book.title}.')) {
       return;
@@ -158,18 +159,17 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
     final LibraryController library = context.read<LibraryController>();
     if (!library.loaded) await library.refresh();
     if (!mounted) return;
+    // Owned (per the backend library): read; never start another order.
     if (library.owns(book.id)) {
-      if (tappedRead) {
-        await _openReader(book, chapter);
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('You already own this book.')),
-        );
-      }
+      await _openReader(book, chapter);
       return;
     }
     // Purchase keeps the user here; the CTA turns into "Read now".
-    await startPaymentFlow(context, book);
+    await startPaymentFlow(
+      context,
+      book,
+      onReadNow: () => _openReader(book, chapter),
+    );
   }
 
   Future<void> _openReader(CatalogBook book, ChapterSummary? chapter) async {
@@ -197,6 +197,7 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
   @override
   Widget build(BuildContext context) {
     final LibraryController library = context.watch<LibraryController>();
+    final PaymentController payment = context.watch<PaymentController>();
     final CatalogBook? book = _book;
     final bool owned = book != null && library.owns(book.id);
     final bool showSkeleton = _loading && book == null;
@@ -213,6 +214,9 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
             ? null
             : _ActionBar(
                 access: access,
+                paymentPhase: payment.activeBookId == book.id
+                    ? payment.phase
+                    : PaymentPhase.idle,
                 priceLabel:
                     book.isPaid && book.price > 0 ? book.priceLabel : null,
                 isLoading: _actionBusy || (_loading && _chapters.isEmpty),
@@ -722,6 +726,7 @@ class _ActionBar extends StatelessWidget {
   const _ActionBar({
     required this.access,
     required this.onPressed,
+    this.paymentPhase = PaymentPhase.idle,
     this.priceLabel,
     this.isLoading = false,
   });
@@ -729,15 +734,28 @@ class _ActionBar extends StatelessWidget {
   final BookAccess access;
   final VoidCallback onPressed;
 
-  /// Real price of a paid book; shown next to the button while it can be
-  /// bought.
+  /// Purchase progress for this book; drives "Processing…" / "Verifying…".
+  final PaymentPhase paymentPhase;
+
+  /// Real price of a paid book, shown as "Buy for ₹X" while it can be bought.
   final String? priceLabel;
   final bool isLoading;
 
   @override
   Widget build(BuildContext context) {
-    final String? price =
-        access.isRead || access.resolvingOwnership ? null : priceLabel;
+    final bool paying = !access.isRead &&
+        (paymentPhase == PaymentPhase.creatingOrder ||
+            paymentPhase == PaymentPhase.checkout ||
+            paymentPhase == PaymentPhase.verifying);
+    final String label = switch (paymentPhase) {
+      _ when access.isRead => access.label,
+      PaymentPhase.creatingOrder ||
+      PaymentPhase.checkout when paying =>
+        'Processing…',
+      PaymentPhase.verifying when paying => 'Verifying payment…',
+      _ when priceLabel != null => 'Buy for $priceLabel',
+      _ => access.label,
+    };
     return DecoratedBox(
       decoration: BoxDecoration(
         color: AppColors.splashBase,
@@ -764,60 +782,35 @@ class _ActionBar extends StatelessWidget {
             AppSpacing.pageHorizontal,
             AppSpacing.md,
           ),
-          child: Row(
-            children: [
-              if (price != null) ...[
-                Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'PRICE',
-                      style: AppTypography.caption(context).copyWith(
-                        fontSize: 10.5,
-                        letterSpacing: 1.4,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.textSecondaryDark,
-                      ),
-                    ),
-                    Text(
-                      price,
-                      style: AppTypography.bookTitle(
-                        context,
-                        fontSize: 20,
-                        color: AppColors.textPrimaryDark,
-                      ),
-                    ),
-                  ],
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              borderRadius: AppRadii.buttonBorder,
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.brandPrimary.withOpacity(0.28),
+                  blurRadius: 22,
+                  spreadRadius: -4,
+                  offset: const Offset(0, 6),
                 ),
-                const SizedBox(width: AppSpacing.lg),
               ],
-              Expanded(
-                child: DecoratedBox(
-                  decoration: BoxDecoration(
-                    borderRadius: AppRadii.buttonBorder,
-                    boxShadow: [
-                      BoxShadow(
-                        color: AppColors.brandPrimary.withOpacity(0.28),
-                        blurRadius: 22,
-                        spreadRadius: -4,
-                        offset: const Offset(0, 6),
-                      ),
-                    ],
-                  ),
-                  child: AppButton(
-                    key: const Key('book-primary-action'),
-                    label: access.label,
-                    size: AppButtonSize.large,
-                    leadingIcon: access.isRead ? AppIcons.read : null,
-                    isLoading: isLoading || access.resolvingOwnership,
-                    backgroundColor: AppColors.brandPrimary,
-                    foregroundColor: AppColors.textOnBrand,
-                    onPressed: onPressed,
-                  ),
-                ),
-              ),
-            ],
+            ),
+            child: AppButton(
+              key: const Key('book-primary-action'),
+              label: label,
+              size: AppButtonSize.large,
+              leadingIcon: access.isRead ? AppIcons.read : null,
+              leading: paying
+                  ? const AppLoader(
+                      size: AppSizes.iconMd,
+                      strokeWidth: AppSizes.loaderStrokeWidthCompact,
+                      color: AppColors.textOnBrand,
+                    )
+                  : null,
+              isLoading: (isLoading && !paying) || access.resolvingOwnership,
+              backgroundColor: AppColors.brandPrimary,
+              foregroundColor: AppColors.textOnBrand,
+              onPressed: onPressed,
+            ),
           ),
         ),
       ),

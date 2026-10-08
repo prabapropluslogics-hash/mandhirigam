@@ -17,6 +17,8 @@ abstract final class AppIcons {
   static const IconData empty = Icons.inbox_outlined;
   static const IconData check = Icons.check_circle_outline_rounded;
   static const IconData checkFilled = Icons.check_circle_rounded;
+  static const IconData done = Icons.check_rounded;
+  static const IconData cancelled = Icons.close_rounded;
   static const IconData read = Icons.auto_stories_rounded;
   static const IconData notifications = Icons.notifications_none_rounded;
   static const IconData chevronRight = Icons.chevron_right_rounded;
@@ -40,4 +42,5 @@ abstract final class AppIcons {
   static const IconData signOut = Icons.logout_rounded;
   static const IconData verified = Icons.verified_rounded;
   static const IconData pending = Icons.hourglass_top_rounded;
+  static const IconData imageUnavailable = Icons.broken_image_outlined;
 }

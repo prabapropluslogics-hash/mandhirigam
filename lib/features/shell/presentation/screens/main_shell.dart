@@ -28,12 +28,14 @@ class _MainShellState extends State<MainShell> {
   void initState() {
     super.initState();
     BackNavigation.homeTabRequests.addListener(_showHome);
+    BackNavigation.libraryTabRequests.addListener(_showLibrary);
   }
 
   @override
   void dispose() {
     _exitArmed?.cancel();
     BackNavigation.homeTabRequests.removeListener(_showHome);
+    BackNavigation.libraryTabRequests.removeListener(_showLibrary);
     super.dispose();
   }
 
@@ -41,6 +43,10 @@ class _MainShellState extends State<MainShell> {
 
   void _showHome() {
     if (mounted && _index != 0) setState(() => _index = 0);
+  }
+
+  void _showLibrary() {
+    if (mounted && _index != 2) setState(() => _index = 2);
   }
 
   void _disarmExit() {

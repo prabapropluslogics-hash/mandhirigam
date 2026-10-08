@@ -97,8 +97,7 @@ class PaymentProgressDialog extends StatelessWidget {
           'Confirming with the server. Please keep the app open.',
         ),
     };
-    final bool testMode =
-        payment.lastOrder?.keyId.startsWith('rzp_test_') ?? false;
+    final bool testMode = payment.isTestCheckout;
 
     return Semantics(
       liveRegion: true,

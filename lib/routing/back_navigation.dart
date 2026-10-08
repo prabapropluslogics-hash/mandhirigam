@@ -12,9 +12,23 @@ abstract final class BackNavigation {
   /// Incremented whenever the shell should show its Home tab.
   static final ValueNotifier<int> homeTabRequests = ValueNotifier<int>(0);
 
+  /// Incremented whenever the shell should show its Library tab.
+  static final ValueNotifier<int> libraryTabRequests = ValueNotifier<int>(0);
+
   /// Pops every route above Home and selects the Home tab. Popped routes
   /// complete with `null`, so awaiting callers (e.g. sign-in) get a result.
   static void goHome(BuildContext context) {
+    _popToHome(context);
+    homeTabRequests.value++;
+  }
+
+  /// Like [goHome], then selects the Library tab.
+  static void goToLibrary(BuildContext context) {
+    _popToHome(context);
+    libraryTabRequests.value++;
+  }
+
+  static void _popToHome(BuildContext context) {
     final NavigatorState navigator = Navigator.of(context);
     bool foundHome = false;
     navigator.popUntil((Route<dynamic> route) {
@@ -27,7 +41,6 @@ abstract final class BackNavigation {
     if (!foundHome) {
       navigator.pushReplacementNamed(AppRoutes.home);
     }
-    homeTabRequests.value++;
   }
 }
 
