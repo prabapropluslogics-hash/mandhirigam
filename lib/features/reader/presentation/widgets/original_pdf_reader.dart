@@ -72,7 +72,10 @@ class _OriginalPdfReaderState extends State<OriginalPdfReader> {
   @override
   void dispose() {
     _progressDebounce?.cancel();
-    _source?.dispose();
+    // Do not dispose [_source] here. [PdfDocumentRefCustom.onDispose] owns
+    // that lifecycle. Disposing early while PDFium GetBlock is in flight makes
+    // pdfrx 1.0.84 report -1 (treated as success) with a dirty buffer.
+    _source = null;
     super.dispose();
   }
 
@@ -92,6 +95,12 @@ class _OriginalPdfReaderState extends State<OriginalPdfReader> {
     }
 
     final ChapterDocument document = chapter.document!;
+    debugPrint(
+      '[pdf-reader] open book=${chapter.bookId} chapter=${chapter.id} '
+      'mode=${chapter.readerMode.wireName} size=${document.size} '
+      'pages=${document.pageCount} sha256=${document.sha256} '
+      'path=${document.downloadPath}',
+    );
     final AppContainer container = context.read<AppContainer>();
     final PdfProgressStore progress = container.pdfProgressStore;
     progress.bindUser(container.authController.user?.id);
@@ -106,7 +115,12 @@ class _OriginalPdfReaderState extends State<OriginalPdfReader> {
       _currentPage = 1;
     });
 
-    _source?.dispose();
+    final AuthenticatedPdfRangeSource? previous = _source;
+    _source = null;
+    // Drop the previous document ref first so its onDispose runs before we
+    // create a new source. Avoids two live sources racing on the same viewer.
+    previous?.dispose();
+
     final AuthenticatedPdfRangeSource source = AuthenticatedPdfRangeSource(
       client: container.apiClient,
       document: document,
@@ -126,6 +140,12 @@ class _OriginalPdfReaderState extends State<OriginalPdfReader> {
     }
 
     final int initial = (saved ?? 1).clamp(1, document.pageCount);
+    // Load the whole document into memory when it fits the app upload ceiling.
+    // Progressive GetBlock (default 1MB threshold) issued ~300+ Range calls for
+    // this 5.1MB book; a failed call was mapped to PDFium "success" via -1.
+    final int memoryCap = document.size <= ChapterDocument.maxAcceptedBytes
+        ? document.size
+        : AuthenticatedPdfRangeSource.rangeChunkBytes;
     setState(() {
       _initialPage = initial;
       _currentPage = initial;
@@ -133,7 +153,7 @@ class _OriginalPdfReaderState extends State<OriginalPdfReader> {
         fileSize: source.fileSize,
         read: source.read,
         sourceName: source.sourceName,
-        // Keep default ~1MB so larger paid PDFs use progressive Range I/O.
+        maxSizeToCacheOnMemory: memoryCap,
         onDispose: source.dispose,
       );
       _opening = false;
@@ -219,12 +239,21 @@ class _OriginalPdfReaderState extends State<OriginalPdfReader> {
   }
 
   void _handleViewerError(Object error) {
-    debugPrint('PDF viewer error: $error');
+    final Object? rangeError = _source?.lastError;
+    debugPrint(
+      'PDF viewer error: $error | lastRangeError=$rangeError | '
+      'book=${widget.chapter.bookId} chapter=${widget.chapter.id} '
+      'ranges=${_source?.rangeRequestCount ?? 0} '
+      'downloaded=${_source?.bytesDownloaded ?? 0}',
+    );
     if (!mounted) return;
-    if (error is ApiException) {
+    final Object effective = error is ApiException
+        ? error
+        : (rangeError is ApiException ? rangeError : error);
+    if (effective is ApiException) {
       setState(() {
-        _apiError = error;
-        _error = error.userMessage;
+        _apiError = effective;
+        _error = effective.userMessage;
         _ready = false;
       });
       return;

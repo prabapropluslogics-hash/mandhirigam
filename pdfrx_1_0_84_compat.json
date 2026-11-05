@@ -1,0 +1,336 @@
+{
+  "pdfrx": "1.0.84",
+  "environment": {
+    "os": "macos",
+    "osVersion": "Version 26.5.2 (Build 25F84)",
+    "android_compositing": "PENDING — host run is not Android"
+  },
+  "pages": [
+    {
+      "page_index": 0,
+      "page_number_in_source_set": 1,
+      "transparent_on_magenta": {
+        "width": 892,
+        "height": 1262,
+        "pixel_format": "PixelFormat.bgra8888",
+        "near_background_pct": 71.527,
+        "near_white_pct": 11.447,
+        "dark_ink_pct": 4.991,
+        "red_ink_pct": 5.096,
+        "mean_rgb": [
+          "235.9",
+          "43.1",
+          "226.3"
+        ]
+      },
+      "transparent_on_white": {
+        "width": 892,
+        "height": 1262,
+        "pixel_format": "PixelFormat.bgra8888",
+        "near_background_pct": 84.511,
+        "near_white_pct": 82.155,
+        "dark_ink_pct": 4.99,
+        "red_ink_pct": 5.079,
+        "mean_rgb": [
+          "235.9",
+          "228.0",
+          "226.3"
+        ]
+      },
+      "transparent_on_parchment": {
+        "width": 892,
+        "height": 1262,
+        "pixel_format": "PixelFormat.bgra8888",
+        "near_background_pct": 75.566,
+        "near_white_pct": 11.448,
+        "dark_ink_pct": 4.99,
+        "red_ink_pct": 76.808,
+        "mean_rgb": [
+          "206.1",
+          "176.5",
+          "137.1"
+        ]
+      },
+      "opaque_on_magenta": {
+        "width": 892,
+        "height": 1262,
+        "pixel_format": "PixelFormat.bgra8888",
+        "near_background_pct": 0.0,
+        "near_white_pct": 84.742,
+        "dark_ink_pct": 4.762,
+        "red_ink_pct": 4.642,
+        "mean_rgb": [
+          "238.0",
+          "229.3",
+          "227.6"
+        ]
+      },
+      "alpha_compositing_ok": true,
+      "opaque_control_ok": true,
+      "foreground_ink_ok": true
+    },
+    {
+      "page_index": 1,
+      "page_number_in_source_set": 7,
+      "transparent_on_magenta": {
+        "width": 892,
+        "height": 1262,
+        "pixel_format": "PixelFormat.bgra8888",
+        "near_background_pct": 57.073,
+        "near_white_pct": 21.804,
+        "dark_ink_pct": 4.692,
+        "red_ink_pct": 7.542,
+        "mean_rgb": [
+          "234.0",
+          "75.7",
+          "222.0"
+        ]
+      },
+      "transparent_on_white": {
+        "width": 892,
+        "height": 1262,
+        "pixel_format": "PixelFormat.bgra8888",
+        "near_background_pct": 81.928,
+        "near_white_pct": 78.412,
+        "dark_ink_pct": 4.692,
+        "red_ink_pct": 7.528,
+        "mean_rgb": [
+          "234.0",
+          "222.8",
+          "222.0"
+        ]
+      },
+      "transparent_on_parchment": {
+        "width": 892,
+        "height": 1262,
+        "pixel_format": "PixelFormat.bgra8888",
+        "near_background_pct": 62.335,
+        "near_white_pct": 21.804,
+        "dark_ink_pct": 4.692,
+        "red_ink_pct": 64.688,
+        "mean_rgb": [
+          "210.4",
+          "181.8",
+          "151.0"
+        ]
+      },
+      "opaque_on_magenta": {
+        "width": 892,
+        "height": 1262,
+        "pixel_format": "PixelFormat.bgra8888",
+        "near_background_pct": 0.0,
+        "near_white_pct": 80.695,
+        "dark_ink_pct": 4.561,
+        "red_ink_pct": 7.193,
+        "mean_rgb": [
+          "236.2",
+          "224.1",
+          "223.3"
+        ]
+      },
+      "alpha_compositing_ok": true,
+      "opaque_control_ok": true,
+      "foreground_ink_ok": true
+    },
+    {
+      "page_index": 2,
+      "page_number_in_source_set": 25,
+      "transparent_on_magenta": {
+        "width": 892,
+        "height": 1262,
+        "pixel_format": "PixelFormat.bgra8888",
+        "near_background_pct": 64.096,
+        "near_white_pct": 20.137,
+        "dark_ink_pct": 3.296,
+        "red_ink_pct": 6.304,
+        "mean_rgb": [
+          "241.3",
+          "66.6",
+          "229.8"
+        ]
+      },
+      "transparent_on_white": {
+        "width": 892,
+        "height": 1262,
+        "pixel_format": "PixelFormat.bgra8888",
+        "near_background_pct": 86.69,
+        "near_white_pct": 83.896,
+        "dark_ink_pct": 3.296,
+        "red_ink_pct": 6.304,
+        "mean_rgb": [
+          "241.3",
+          "231.4",
+          "229.8"
+        ]
+      },
+      "transparent_on_parchment": {
+        "width": 892,
+        "height": 1262,
+        "pixel_format": "PixelFormat.bgra8888",
+        "near_background_pct": 68.021,
+        "near_white_pct": 20.138,
+        "dark_ink_pct": 3.296,
+        "red_ink_pct": 70.477,
+        "mean_rgb": [
+          "214.8",
+          "185.5",
+          "150.3"
+        ]
+      },
+      "opaque_on_magenta": {
+        "width": 892,
+        "height": 1262,
+        "pixel_format": "PixelFormat.bgra8888",
+        "near_background_pct": 0.0,
+        "near_white_pct": 85.832,
+        "dark_ink_pct": 3.117,
+        "red_ink_pct": 6.045,
+        "mean_rgb": [
+          "242.8",
+          "232.0",
+          "230.4"
+        ]
+      },
+      "alpha_compositing_ok": true,
+      "opaque_control_ok": true,
+      "foreground_ink_ok": true
+    },
+    {
+      "page_index": 3,
+      "page_number_in_source_set": 33,
+      "transparent_on_magenta": {
+        "width": 892,
+        "height": 1262,
+        "pixel_format": "PixelFormat.bgra8888",
+        "near_background_pct": 68.489,
+        "near_white_pct": 13.326,
+        "dark_ink_pct": 5.613,
+        "red_ink_pct": 4.62,
+        "mean_rgb": [
+          "233.4",
+          "49.0",
+          "224.9"
+        ]
+      },
+      "transparent_on_white": {
+        "width": 892,
+        "height": 1262,
+        "pixel_format": "PixelFormat.bgra8888",
+        "near_background_pct": 83.43,
+        "near_white_pct": 80.701,
+        "dark_ink_pct": 5.611,
+        "red_ink_pct": 4.62,
+        "mean_rgb": [
+          "233.4",
+          "226.4",
+          "224.9"
+        ]
+      },
+      "transparent_on_parchment": {
+        "width": 892,
+        "height": 1262,
+        "pixel_format": "PixelFormat.bgra8888",
+        "near_background_pct": 73.031,
+        "near_white_pct": 13.327,
+        "dark_ink_pct": 5.612,
+        "red_ink_pct": 73.297,
+        "mean_rgb": [
+          "204.8",
+          "177.0",
+          "139.3"
+        ]
+      },
+      "opaque_on_magenta": {
+        "width": 892,
+        "height": 1262,
+        "pixel_format": "PixelFormat.bgra8888",
+        "near_background_pct": 0.0,
+        "near_white_pct": 83.789,
+        "dark_ink_pct": 5.365,
+        "red_ink_pct": 4.284,
+        "mean_rgb": [
+          "235.9",
+          "228.1",
+          "226.5"
+        ]
+      },
+      "alpha_compositing_ok": true,
+      "opaque_control_ok": true,
+      "foreground_ink_ok": true
+    },
+    {
+      "page_index": 4,
+      "page_number_in_source_set": 13,
+      "transparent_on_magenta": {
+        "width": 892,
+        "height": 1262,
+        "pixel_format": "PixelFormat.bgra8888",
+        "near_background_pct": 65.269,
+        "near_white_pct": 17.096,
+        "dark_ink_pct": 4.765,
+        "red_ink_pct": 5.976,
+        "mean_rgb": [
+          "236.6",
+          "59.1",
+          "225.8"
+        ]
+      },
+      "transparent_on_white": {
+        "width": 892,
+        "height": 1262,
+        "pixel_format": "PixelFormat.bgra8888",
+        "near_background_pct": 84.767,
+        "near_white_pct": 81.791,
+        "dark_ink_pct": 4.765,
+        "red_ink_pct": 5.948,
+        "mean_rgb": [
+          "236.6",
+          "227.4",
+          "225.8"
+        ]
+      },
+      "transparent_on_parchment": {
+        "width": 892,
+        "height": 1262,
+        "pixel_format": "PixelFormat.bgra8888",
+        "near_background_pct": 69.106,
+        "near_white_pct": 17.097,
+        "dark_ink_pct": 4.765,
+        "red_ink_pct": 71.35,
+        "mean_rgb": [
+          "209.5",
+          "180.6",
+          "144.6"
+        ]
+      },
+      "opaque_on_magenta": {
+        "width": 892,
+        "height": 1262,
+        "pixel_format": "PixelFormat.bgra8888",
+        "near_background_pct": 0.0,
+        "near_white_pct": 84.189,
+        "dark_ink_pct": 4.523,
+        "red_ink_pct": 5.74,
+        "mean_rgb": [
+          "238.4",
+          "228.4",
+          "226.7"
+        ]
+      },
+      "alpha_compositing_ok": true,
+      "opaque_control_ok": true,
+      "foreground_ink_ok": true
+    }
+  ],
+  "summary": {
+    "opened_both_pdfs": true,
+    "page_count_transparent": 5,
+    "page_count_opaque": 5,
+    "alpha_softmask_survives_pdfrx_render": true,
+    "opaque_control_does_not_show_magenta_bg": true,
+    "continuous_pages_rendered_with_ink": true,
+    "android_device_verification": "PENDING",
+    "verdict": "PASS_HOST_PDFIUM",
+    "note": "Uses pdfrx 1.0.84 PdfPage.render(backgroundColor=…). Soft-mask alpha is confirmed when transparent pages show magenta/parchment through cleared regions while the opaque control does not. PNG transparency alone is not treated as proof."
+  }
+}

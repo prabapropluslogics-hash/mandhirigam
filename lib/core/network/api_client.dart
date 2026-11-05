@@ -355,9 +355,13 @@ class ApiClient {
   }) {
     final String contentType =
         (response.headers['content-type'] ?? '').toLowerCase();
+    final Uint8List body = response.bodyBytes;
+    // Inspect raw bytes — never decode PDF bodies as UTF-8/JSON strings.
+    final bool bodyLooksJson =
+        body.isNotEmpty && body[0] == 0x7B; // '{'
     final bool looksJson = contentType.contains('application/json') ||
         contentType.contains('text/json') ||
-        (response.body.isNotEmpty && response.body.trimLeft().startsWith('{'));
+        bodyLooksJson;
 
     if (looksJson ||
         response.statusCode == 401 ||
@@ -365,10 +369,11 @@ class ApiClient {
         response.statusCode == 404 ||
         response.statusCode == 416 ||
         response.statusCode >= 400) {
-      if (response.body.isNotEmpty &&
-          response.body.trimLeft().startsWith('{')) {
-        final ApiEnvelope envelope =
-            ApiEnvelope.parse(response.body, response.statusCode);
+      if (bodyLooksJson) {
+        final ApiEnvelope envelope = ApiEnvelope.parse(
+          utf8.decode(body, allowMalformed: true),
+          response.statusCode,
+        );
         envelope.throwIfError(response.statusCode);
       }
       throw ApiException(
@@ -391,8 +396,6 @@ class ApiClient {
                     : 'Document request failed.',
       );
     }
-
-    final Uint8List body = response.bodyBytes;
     if (body.isEmpty) {
       throw ApiException(
         statusCode: response.statusCode,
@@ -421,6 +424,24 @@ class ApiClient {
           message: 'Partial response start offset mismatch.',
         );
       }
+      // PDFium GetBlock requires the full requested window. A shorter
+      // Content-Range than asked must not be treated as success.
+      if (range.endInclusive < requestedEndInclusive) {
+        throw ApiException(
+          statusCode: 206,
+          code: 'MALFORMED_RESPONSE',
+          message:
+              'Partial response ended early (got ${range.start}-${range.endInclusive}, '
+              'requested $requestedStart-$requestedEndInclusive).',
+        );
+      }
+      if (range.endInclusive > requestedEndInclusive) {
+        throw const ApiException(
+          statusCode: 206,
+          code: 'MALFORMED_RESPONSE',
+          message: 'Partial response end offset exceeds request.',
+        );
+      }
       if (body.length != (range.endInclusive - range.start + 1)) {
         throw const ApiException(
           statusCode: 206,
@@ -435,6 +456,15 @@ class ApiClient {
           statusCode: 416,
           code: 'DOCUMENT_SIZE_MISMATCH',
           message: 'Document size changed. Please reopen the chapter.',
+        );
+      }
+      if (AppEnv.isDevelopment) {
+        // ignore: avoid_print
+        print(
+          '[api] Range OK bytes=${range.start}-${range.endInclusive}/'
+          '${range.total} body=${body.length} '
+          'ctype=${response.headers['content-type'] ?? '?'} '
+          'encoding=${response.headers['content-encoding'] ?? 'identity'}',
         );
       }
       return ByteRangeResponse(

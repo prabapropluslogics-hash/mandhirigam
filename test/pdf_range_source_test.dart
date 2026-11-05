@@ -36,6 +36,7 @@ class _RangeBackend extends http.BaseClient {
     this.wrongTotal,
     this.wrongRangeStart,
     this.omitContentRange = false,
+    this.shortenEndBy = 0,
   }) : payload =
             payload ?? Uint8List.fromList(List<int>.generate(20, (int i) => i));
 
@@ -49,6 +50,7 @@ class _RangeBackend extends http.BaseClient {
   final int? wrongTotal;
   final int? wrongRangeStart;
   final bool omitContentRange;
+  final int shortenEndBy;
   bool _unauthorizedUsed = false;
   final List<http.BaseRequest> requests = <http.BaseRequest>[];
 
@@ -98,7 +100,10 @@ class _RangeBackend extends http.BaseClient {
       );
     }
 
-    final Uint8List slice = Uint8List.sublistView(payload, start, end + 1);
+    final int actualEnd =
+        shortenEndBy > 0 ? (end - shortenEndBy).clamp(start, end) : end;
+    final Uint8List slice =
+        Uint8List.sublistView(payload, start, actualEnd + 1);
     final Map<String, String> headers = <String, String>{
       'content-type': 'application/pdf',
       'accept-ranges': 'bytes',
@@ -107,7 +112,7 @@ class _RangeBackend extends http.BaseClient {
     };
     if (!omitContentRange) {
       final int reportedStart = wrongRangeStart ?? start;
-      headers['content-range'] = 'bytes $reportedStart-$end/$total';
+      headers['content-range'] = 'bytes $reportedStart-$actualEnd/$total';
     }
     return http.StreamedResponse(
       Stream<List<int>>.fromIterable(<List<int>>[slice]),
@@ -250,54 +255,46 @@ void main() {
         bookId: _bookId,
         chapterId: _chapterId,
       );
-      await expectLater(
-        source.read(Uint8List(2), 0, 2),
-        throwsA(isA<ApiException>().having(
-          (ApiException e) => e.isForbidden || e.isPurchaseRequired,
-          'forbidden',
-          isTrue,
-        )),
+      // Must return 0 (not throw): pdfrx FileAccess treats thrown -1 as success.
+      expect(await source.read(Uint8List(2), 0, 2), 0);
+      expect(source.lastError, isA<ApiException>());
+      expect(
+        (source.lastError! as ApiException).isForbidden ||
+            (source.lastError! as ApiException).isPurchaseRequired,
+        isTrue,
       );
       expect(refreshCalls, 0);
       expect(httpClient.requests, hasLength(1));
     });
 
-    test('404 and 416 map to ApiException', () async {
+    test('404 and 416 map to lastError without throwing into PDFium', () async {
       final ApiClient missing = ApiClient(
         httpClient: _RangeBackend(forceNotFound: true),
         readAccessToken: () async => 't',
       );
-      await expectLater(
-        AuthenticatedPdfRangeSource(
-          client: missing,
-          document: _doc(),
-          bookId: _bookId,
-          chapterId: _chapterId,
-        ).read(Uint8List(1), 0, 1),
-        throwsA(isA<ApiException>().having(
-          (ApiException e) => e.isNotFound,
-          'notFound',
-          isTrue,
-        )),
+      final AuthenticatedPdfRangeSource missingSource =
+          AuthenticatedPdfRangeSource(
+        client: missing,
+        document: _doc(),
+        bookId: _bookId,
+        chapterId: _chapterId,
       );
+      expect(await missingSource.read(Uint8List(1), 0, 1), 0);
+      expect((missingSource.lastError! as ApiException).isNotFound, isTrue);
 
       final ApiClient range = ApiClient(
         httpClient: _RangeBackend(forceInvalidRange: true),
         readAccessToken: () async => 't',
       );
-      await expectLater(
-        AuthenticatedPdfRangeSource(
-          client: range,
-          document: _doc(),
-          bookId: _bookId,
-          chapterId: _chapterId,
-        ).read(Uint8List(1), 0, 1),
-        throwsA(isA<ApiException>().having(
-          (ApiException e) => e.statusCode,
-          'status',
-          416,
-        )),
+      final AuthenticatedPdfRangeSource rangeSource =
+          AuthenticatedPdfRangeSource(
+        client: range,
+        document: _doc(),
+        bookId: _bookId,
+        chapterId: _chapterId,
       );
+      expect(await rangeSource.read(Uint8List(1), 0, 1), 0);
+      expect((rangeSource.lastError! as ApiException).statusCode, 416);
     });
 
     test('size mismatch on Content-Range total is rejected', () async {
@@ -305,19 +302,14 @@ void main() {
         httpClient: _RangeBackend(wrongTotal: 999),
         readAccessToken: () async => 't',
       );
-      await expectLater(
-        AuthenticatedPdfRangeSource(
-          client: client,
-          document: _doc(),
-          bookId: _bookId,
-          chapterId: _chapterId,
-        ).read(Uint8List(2), 0, 2),
-        throwsA(isA<ApiException>().having(
-          (ApiException e) => e.code,
-          'code',
-          'DOCUMENT_SIZE_MISMATCH',
-        )),
+      final AuthenticatedPdfRangeSource source = AuthenticatedPdfRangeSource(
+        client: client,
+        document: _doc(),
+        bookId: _bookId,
+        chapterId: _chapterId,
       );
+      expect(await source.read(Uint8List(2), 0, 2), 0);
+      expect((source.lastError! as ApiException).code, 'DOCUMENT_SIZE_MISMATCH');
     });
 
     test('disposed source cancels further reads', () async {
@@ -332,14 +324,8 @@ void main() {
         chapterId: _chapterId,
       );
       source.dispose();
-      await expectLater(
-        source.read(Uint8List(1), 0, 1),
-        throwsA(isA<ApiException>().having(
-          (ApiException e) => e.code,
-          'code',
-          'CANCELLED',
-        )),
-      );
+      expect(await source.read(Uint8List(1), 0, 1), 0);
+      expect((source.lastError! as ApiException).code, 'CANCELLED');
     });
 
     test('apiRelativePath never doubles /api/v1', () {
@@ -383,19 +369,14 @@ void main() {
         httpClient: _RangeBackend(wrongRangeStart: 1),
         readAccessToken: () async => 't',
       );
-      await expectLater(
-        AuthenticatedPdfRangeSource(
-          client: client,
-          document: _doc(),
-          bookId: _bookId,
-          chapterId: _chapterId,
-        ).read(Uint8List(3), 0, 3),
-        throwsA(isA<ApiException>().having(
-          (ApiException e) => e.code,
-          'code',
-          'MALFORMED_RESPONSE',
-        )),
+      final AuthenticatedPdfRangeSource source = AuthenticatedPdfRangeSource(
+        client: client,
+        document: _doc(),
+        bookId: _bookId,
+        chapterId: _chapterId,
       );
+      expect(await source.read(Uint8List(3), 0, 3), 0);
+      expect((source.lastError! as ApiException).code, 'MALFORMED_RESPONSE');
     });
 
     test('missing Content-Range on 206 is rejected', () async {
@@ -403,35 +384,124 @@ void main() {
         httpClient: _RangeBackend(omitContentRange: true),
         readAccessToken: () async => 't',
       );
-      await expectLater(
-        AuthenticatedPdfRangeSource(
-          client: client,
-          document: _doc(),
-          bookId: _bookId,
-          chapterId: _chapterId,
-        ).read(Uint8List(2), 0, 2),
-        throwsA(isA<ApiException>().having(
-          (ApiException e) => e.code,
-          'code',
-          'MALFORMED_RESPONSE',
-        )),
+      final AuthenticatedPdfRangeSource source = AuthenticatedPdfRangeSource(
+        client: client,
+        document: _doc(),
+        bookId: _bookId,
+        chapterId: _chapterId,
       );
+      expect(await source.read(Uint8List(2), 0, 2), 0);
+      expect((source.lastError! as ApiException).code, 'MALFORMED_RESPONSE');
     });
 
-    test('network failure maps to NetworkException', () async {
+    test('network failure maps to NetworkException on lastError', () async {
       final ApiClient client = ApiClient(
         httpClient: _RangeBackend(forceNetworkError: true),
         readAccessToken: () async => 't',
       );
-      await expectLater(
-        AuthenticatedPdfRangeSource(
-          client: client,
-          document: _doc(),
-          bookId: _bookId,
-          chapterId: _chapterId,
-        ).read(Uint8List(2), 0, 2),
-        throwsA(isA<NetworkException>()),
+      final AuthenticatedPdfRangeSource source = AuthenticatedPdfRangeSource(
+        client: client,
+        document: _doc(),
+        bookId: _bookId,
+        chapterId: _chapterId,
       );
+      expect(await source.read(Uint8List(2), 0, 2), 0);
+      expect(source.lastError, isA<NetworkException>());
+    });
+
+    test('First Temp Book fixture: full document metadata + chunked open read',
+        () async {
+      // Production First Temp Book By Developer chapter document.
+      const String bookId = '6ae9f5bd360a5bdcd2e7307e';
+      const String chapterId = '6aea182e76bf708b45cc5f45';
+      const String sha =
+          'd9d6ebfaea32e221e9a4465980e4cd7feaee8a45dd186d3e8001eb1199d95231';
+      const int size = 5380261;
+
+      final ChapterContent chapter = ChapterContent.fromJson(<String, dynamic>{
+        'id': chapterId,
+        'bookId': bookId,
+        'chapterNumber': 1,
+        'title': 'This is Sample Chapter',
+        'contentFormat': 'RICH_TEXT',
+        'readerMode': 'ORIGINAL_PDF',
+        'status': 'PUBLISHED',
+        'document': <String, dynamic>{
+          'mediaId': '6aea183376bf708b45cc5f5b',
+          'fileName': '_ _ __260823_184815.pdf',
+          'mimeType': 'application/pdf',
+          'size': size,
+          'pageCount': 33,
+          'sha256': sha,
+          'downloadPath':
+              '/api/v1/books/$bookId/chapters/$chapterId/document',
+        },
+      });
+      expect(chapter.pdfOpenError(), isNull);
+      expect(chapter.document!.sha256, sha);
+      expect(chapter.document!.size, size);
+
+      // Synthetic PDF bytes: real %PDF header + deterministic payload.
+      final Uint8List payload = Uint8List(size);
+      payload.setAll(0, '%PDF-1.7'.codeUnits);
+      for (int i = 8; i < size; i++) {
+        payload[i] = i & 0xff;
+      }
+
+      final _RangeBackend httpClient = _RangeBackend(payload: payload);
+      final AuthenticatedPdfRangeSource source = AuthenticatedPdfRangeSource(
+        client: ApiClient(
+          httpClient: httpClient,
+          readAccessToken: () async => 't',
+        ),
+        document: chapter.document!,
+        bookId: bookId,
+        chapterId: chapterId,
+      );
+
+      // Memory-open path asks for the entire file once; source chunks it.
+      final Uint8List buffer = Uint8List(size);
+      expect(await source.read(buffer, 0, size), size);
+      expect(buffer.sublist(0, 8), '%PDF-1.7'.codeUnits);
+      expect(buffer[1000], 1000 & 0xff);
+      expect(source.rangeRequestCount, greaterThan(1));
+      expect(
+        source.rangeRequestCount,
+        (size / AuthenticatedPdfRangeSource.rangeChunkBytes).ceil(),
+      );
+      expect(httpClient.requests.first.headers['Range'], 'bytes=0-262143');
+      expect(
+        httpClient.requests.last.headers['Range'],
+        'bytes=${(source.rangeRequestCount - 1) * AuthenticatedPdfRangeSource.rangeChunkBytes}-${size - 1}',
+      );
+      // Working Thandhrigam book shares the same checksum/size; identity differs.
+      expect(
+        source.sourceName,
+        'chapter-pdf:$bookId:$chapterId:$sha:$size',
+      );
+      expect(
+        source.sourceName,
+        isNot(
+          'chapter-pdf:6aead7cd76bf708b45cc60ab:6aead7f676bf708b45cc60de:$sha:$size',
+        ),
+      );
+      source.dispose();
+    });
+
+    test('early Content-Range end is rejected (incomplete GetBlock window)',
+        () async {
+      final ApiClient client = ApiClient(
+        httpClient: _RangeBackend(shortenEndBy: 4),
+        readAccessToken: () async => 't',
+      );
+      final AuthenticatedPdfRangeSource source = AuthenticatedPdfRangeSource(
+        client: client,
+        document: _doc(),
+        bookId: _bookId,
+        chapterId: _chapterId,
+      );
+      expect(await source.read(Uint8List(8), 0, 8), 0);
+      expect((source.lastError! as ApiException).code, 'MALFORMED_RESPONSE');
     });
   });
 }
