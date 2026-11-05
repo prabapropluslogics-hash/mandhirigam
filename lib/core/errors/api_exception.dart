@@ -20,6 +20,11 @@ class ApiException implements Exception {
 
   bool get isPurchaseRequired => code == 'PURCHASE_REQUIRED';
 
+  bool get isForbidden =>
+      statusCode == 403 || code == 'FORBIDDEN' || isPurchaseRequired;
+
+  bool get isNotFound => statusCode == 404 || code == 'NOT_FOUND';
+
   bool get isAlreadyOwned => code == 'BOOK_ALREADY_OWNED';
 
   bool get isRateLimited => statusCode == 429 || code == 'RATE_LIMITED';
@@ -72,12 +77,20 @@ class ApiException implements Exception {
       case 'BOOK_NOT_FOUND':
       case 'CHAPTER_NOT_FOUND':
         return 'This title is no longer available.';
+      case 'INVALID_RANGE':
+        return 'Could not load part of this document. Please try again.';
+      case 'DOCUMENT_SIZE_MISMATCH':
+        return 'This document was updated. Please reopen the chapter.';
+      case 'CANCELLED':
+        return 'Reading was cancelled.';
       case 'NETWORK_ERROR':
         return 'Check your connection and try again.';
       case 'TIMEOUT':
         return 'The request timed out. Please try again.';
       default:
-        return message.isEmpty ? 'Something went wrong. Please try again.' : message;
+        return message.isEmpty
+            ? 'Something went wrong. Please try again.'
+            : message;
     }
   }
 

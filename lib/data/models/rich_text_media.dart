@@ -1,11 +1,28 @@
 import '../../core/utils/json_map.dart';
 
-/// Media carried by an `image`, `audio` or `video` block.
-///
-/// The backend contract (Rich Text V1) does not define media blocks yet.
-/// These fields are the expected shape, flat on the block like the V1 text
-/// fields; see `Docs/FLUTTER_IMPLEMENTATION.md`. Every field except `url` is
-/// optional, and a block without a usable `url` is dropped.
+/// Optional import/source metadata. Not shown in the Reader UI.
+class RichTextSource {
+  const RichTextSource({this.page, this.order});
+
+  final int? page;
+  final int? order;
+
+  static RichTextSource? tryParse(Object? raw) {
+    if (raw is! Map) return null;
+    final Map<String, dynamic> json = Map<String, dynamic>.from(raw);
+    final int? page = _positive(json['page']);
+    final int? order = _positive(json['order']);
+    if (page == null && order == null) return null;
+    return RichTextSource(page: page, order: order);
+  }
+
+  static int? _positive(Object? value) {
+    final int number = asInt(value);
+    return number > 0 ? number : null;
+  }
+}
+
+/// Media carried by an `image` block (Rich Text V2), or prepared audio/video.
 sealed class RichTextMedia {
   const RichTextMedia({
     required this.url,
@@ -14,54 +31,29 @@ sealed class RichTextMedia {
     this.caption,
   });
 
-  /// Absolute http(s) URL of the media file.
+  /// Absolute http(s) media URL from the API (never put a token in it).
   final String url;
   final String? mediaId;
   final String? mimeType;
   final String? caption;
 
-  /// Parses the media of a block of [type], or returns null when the type is
-  /// not a media type or the block has no usable URL.
-  static RichTextMedia? fromBlock(String type, Map<String, dynamic> json) {
-    final String? url = mediaUrl(json['url']);
-    if (url == null) return null;
+  /// Parses media for [type], or null when the block is unusable.
+  static RichTextMedia? fromBlock(
+    String type,
+    Map<String, dynamic> json, {
+    required int documentVersion,
+  }) {
     switch (type) {
       case RichTextBlockType.image:
-        return RichTextImage(
-          url: url,
-          mediaId: asStringOrNull(json['mediaId']),
-          mimeType: asStringOrNull(json['mimeType']),
-          caption: _text(json['caption']),
-          alt: _text(json['alt']),
-          width: _dimension(json['width']),
-          height: _dimension(json['height']),
-        );
+        return RichTextImage.tryParse(json, documentVersion: documentVersion);
       case RichTextBlockType.audio:
-        return RichTextAudio(
-          url: url,
-          mediaId: asStringOrNull(json['mediaId']),
-          mimeType: asStringOrNull(json['mimeType']),
-          caption: _text(json['caption']),
-          title: _text(json['title']),
-          durationSeconds: _dimension(json['durationSeconds']),
-        );
+        return RichTextAudio.tryParse(json);
       case RichTextBlockType.video:
-        return RichTextVideo(
-          url: url,
-          mediaId: asStringOrNull(json['mediaId']),
-          mimeType: asStringOrNull(json['mimeType']),
-          caption: _text(json['caption']),
-          title: _text(json['title']),
-          thumbnailUrl: mediaUrl(json['thumbnailUrl']),
-          durationSeconds: _dimension(json['durationSeconds']),
-          width: _dimension(json['width']),
-          height: _dimension(json['height']),
-        );
+        return RichTextVideo.tryParse(json);
     }
     return null;
   }
 
-  /// [value] as an absolute http(s) URL, or null.
   static String? mediaUrl(Object? value) {
     if (value is! String) return null;
     final String text = value.trim();
@@ -71,13 +63,13 @@ sealed class RichTextMedia {
     return text;
   }
 
-  static String? _text(Object? value) {
+  static String? text(Object? value) {
     if (value is! String) return null;
-    final String text = value.trim();
-    return text.isEmpty ? null : text;
+    final String trimmed = value.trim();
+    return trimmed.isEmpty ? null : trimmed;
   }
 
-  static int? _dimension(Object? value) {
+  static int? dimension(Object? value) {
     final int number = asInt(value);
     return number > 0 ? number : null;
   }
@@ -86,29 +78,85 @@ sealed class RichTextMedia {
 class RichTextImage extends RichTextMedia {
   const RichTextImage({
     required super.url,
-    super.mediaId,
+    required String mediaId,
     super.mimeType,
     super.caption,
     this.alt,
     this.width,
     this.height,
-  });
+    this.fit = 'contain',
+    this.source,
+  }) : super(mediaId: mediaId);
 
-  /// Accessibility text supplied by the backend.
+  @override
+  String get mediaId => super.mediaId!;
+
+  /// Accessibility text from the backend.
   final String? alt;
   final int? width;
   final int? height;
 
-  /// Width / height when both are supplied.
+  /// Backend fit hint; only `contain` is used today.
+  final String fit;
+  final RichTextSource? source;
+
   double? get aspectRatio {
     final int? w = width;
     final int? h = height;
     if (w == null || h == null) return null;
     return w / h;
   }
+
+  /// V2 chapter images must use the public media route for [mediaId]
+  /// (not Admin routes or arbitrary CDN hosts). [mediaId] is a 24-char
+  /// Mongo ObjectId.
+  static RichTextImage? tryParse(
+    Map<String, dynamic> json, {
+    required int documentVersion,
+  }) {
+    // Official contract: image blocks are V2-only.
+    if (documentVersion < 2) return null;
+    final String? mediaId = asStringOrNull(json['mediaId']);
+    final String? url = RichTextMedia.mediaUrl(json['url']);
+    if (mediaId == null || url == null) return null;
+    if (!isValidChapterMedia(mediaId: mediaId, url: url)) return null;
+    return RichTextImage(
+      url: url,
+      mediaId: mediaId,
+      mimeType: asStringOrNull(json['mimeType']),
+      caption: RichTextMedia.text(json['caption']),
+      alt: RichTextMedia.text(json['alt']),
+      width: RichTextMedia.dimension(json['width']),
+      height: RichTextMedia.dimension(json['height']),
+      fit: asString(json['fit'], 'contain'),
+      source: RichTextSource.tryParse(json['source']),
+    );
+  }
+
+  static final RegExp _objectId = RegExp(r'^[a-fA-F0-9]{24}$');
+
+  /// True when [url] is a mobile media URL for [mediaId].
+  static bool isValidChapterMedia({
+    required String mediaId,
+    required String url,
+  }) {
+    if (!_objectId.hasMatch(mediaId)) return false;
+    final Uri? uri = Uri.tryParse(url);
+    if (uri == null) return false;
+    final List<String> segments =
+        uri.pathSegments.where((String s) => s.isNotEmpty).toList();
+    if (segments.contains('admin')) return false;
+    final int mediaIndex = segments.lastIndexOf('media');
+    if (mediaIndex < 0 || mediaIndex + 1 >= segments.length) return false;
+    // Reject /media/covers/:id
+    if (segments[mediaIndex + 1] == 'covers') return false;
+    if (segments[mediaIndex + 1] != mediaId) return false;
+    // No extra path after the id.
+    return mediaIndex + 2 == segments.length;
+  }
 }
 
-/// Recognised and kept, but not shown by the Reader yet.
+/// Prepared for a future release; not rendered.
 class RichTextAudio extends RichTextMedia {
   const RichTextAudio({
     required super.url,
@@ -124,9 +172,22 @@ class RichTextAudio extends RichTextMedia {
 
   Duration? get duration =>
       durationSeconds == null ? null : Duration(seconds: durationSeconds!);
+
+  static RichTextAudio? tryParse(Map<String, dynamic> json) {
+    final String? url = RichTextMedia.mediaUrl(json['url']);
+    if (url == null) return null;
+    return RichTextAudio(
+      url: url,
+      mediaId: asStringOrNull(json['mediaId']),
+      mimeType: asStringOrNull(json['mimeType']),
+      caption: RichTextMedia.text(json['caption']),
+      title: RichTextMedia.text(json['title']),
+      durationSeconds: RichTextMedia.dimension(json['durationSeconds']),
+    );
+  }
 }
 
-/// Recognised and kept, but not shown by the Reader yet.
+/// Prepared for a future release; not rendered.
 class RichTextVideo extends RichTextMedia {
   const RichTextVideo({
     required super.url,
@@ -148,9 +209,25 @@ class RichTextVideo extends RichTextMedia {
 
   Duration? get duration =>
       durationSeconds == null ? null : Duration(seconds: durationSeconds!);
+
+  static RichTextVideo? tryParse(Map<String, dynamic> json) {
+    final String? url = RichTextMedia.mediaUrl(json['url']);
+    if (url == null) return null;
+    return RichTextVideo(
+      url: url,
+      mediaId: asStringOrNull(json['mediaId']),
+      mimeType: asStringOrNull(json['mimeType']),
+      caption: RichTextMedia.text(json['caption']),
+      title: RichTextMedia.text(json['title']),
+      thumbnailUrl: RichTextMedia.mediaUrl(json['thumbnailUrl']),
+      durationSeconds: RichTextMedia.dimension(json['durationSeconds']),
+      width: RichTextMedia.dimension(json['width']),
+      height: RichTextMedia.dimension(json['height']),
+    );
+  }
 }
 
-/// Block `type` values. The first five are the frozen Rich Text V1 types.
+/// Block `type` values. First five are frozen Rich Text V1; `image` is V2.
 abstract final class RichTextBlockType {
   static const String paragraph = 'paragraph';
   static const String heading = 'heading';
@@ -160,6 +237,8 @@ abstract final class RichTextBlockType {
   static const String image = 'image';
   static const String audio = 'audio';
   static const String video = 'video';
+
+  static const String presentationInstruction = 'instruction';
 
   static const Set<String> text = <String>{
     paragraph,

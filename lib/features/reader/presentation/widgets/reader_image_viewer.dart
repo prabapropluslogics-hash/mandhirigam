@@ -1,8 +1,11 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
+import '../../../../core/app_container.dart';
 import '../../../../data/models/rich_text_document.dart';
+import '../../../../data/services/chapter_media_loader.dart';
 import '../../../../design_system/components/buttons/app_icon_button.dart';
 import '../../../../design_system/icons/app_icons.dart';
 import '../../../../design_system/theme/app_colors.dart';
@@ -14,20 +17,35 @@ import 'reader_inline_image.dart';
 /// button or system back) pops only this route, so the Reader underneath
 /// keeps its chapter and scroll position.
 class ReaderImageViewer extends StatelessWidget {
-  const ReaderImageViewer({super.key, required this.image});
+  const ReaderImageViewer({
+    super.key,
+    required this.image,
+    this.provider,
+  });
 
   final RichTextImage image;
 
-  /// Upper bound for the decoded size of the longest side, in pixels.
+  /// Prefer the inline decode provider when already loaded so the viewer
+  /// does not refetch.
+  final ImageProvider<Object>? provider;
+
   static const int maxDecodeSize = 2560;
 
-  static Future<void> show(BuildContext context, RichTextImage image) {
+  static Future<void> show(
+    BuildContext context,
+    RichTextImage image, {
+    ImageProvider<Object>? provider,
+  }) {
     return Navigator.of(context).push<void>(
       PageRouteBuilder<void>(
         fullscreenDialog: true,
+        opaque: true,
         transitionDuration: const Duration(milliseconds: 220),
         reverseTransitionDuration: const Duration(milliseconds: 180),
-        pageBuilder: (_, __, ___) => ReaderImageViewer(image: image),
+        pageBuilder: (_, __, ___) => ReaderImageViewer(
+          image: image,
+          provider: provider,
+        ),
         transitionsBuilder: (_, Animation<double> animation, __, Widget child) {
           return FadeTransition(
             opacity: CurvedAnimation(parent: animation, curve: Curves.easeOut),
@@ -38,15 +56,33 @@ class ReaderImageViewer extends StatelessWidget {
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
+  ImageProvider<Object> _resolve(BuildContext context) {
+    final ImageProvider<Object>? existing = provider;
+    if (existing != null) return existing;
     final Size screen = MediaQuery.sizeOf(context);
     final int decode = (math.max(screen.width, screen.height) *
             MediaQuery.devicePixelRatioOf(context))
         .round()
         .clamp(1, maxDecodeSize);
-    final String? caption = image.caption;
+    final ImageProvider<Object> Function(RichTextImage image)? override =
+        debugReaderImageProvider;
+    final ImageProvider<Object> base = override?.call(image) ??
+        AuthenticatedMediaImageProvider(
+          mediaId: image.mediaId,
+          loader: debugChapterMediaLoader ??
+              context.read<AppContainer>().chapterMediaLoader,
+        );
+    return ResizeImage(
+      base,
+      width: decode,
+      height: decode,
+      policy: ResizeImagePolicy.fit,
+    );
+  }
 
+  @override
+  Widget build(BuildContext context) {
+    final String? caption = image.caption;
     return Scaffold(
       backgroundColor: AppColors.readerChrome,
       body: SafeArea(
@@ -70,12 +106,7 @@ class ReaderImageViewer extends StatelessWidget {
                 maxScale: 4,
                 child: SizedBox.expand(
                   child: Image(
-                    image: ResizeImage(
-                      readerImageProvider(image.url),
-                      width: decode,
-                      height: decode,
-                      policy: ResizeImagePolicy.fit,
-                    ),
+                    image: _resolve(context),
                     fit: BoxFit.contain,
                     semanticLabel: image.alt,
                     excludeFromSemantics: image.alt == null,

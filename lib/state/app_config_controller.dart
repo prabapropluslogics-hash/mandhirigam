@@ -82,9 +82,9 @@ class AppConfigController extends ChangeNotifier {
         return 'Cannot reach $target.\n\n'
             'This build is still using the Android emulator default '
             '(${AppEnv.apiBaseUrl}). A physical device cannot reach that host.\n\n'
-            'Run with your Render API, for example:\n'
+            'Run with the deployed API, for example:\n'
             'flutter run --dart-define=API_BASE_URL='
-            'https://YOUR-SERVICE.onrender.com/api/v1';
+            'https://api.maandhrigam.demosvr.in/api/v1';
       }
       return '${error.userMessage}\n\nCould not reach $target';
     }

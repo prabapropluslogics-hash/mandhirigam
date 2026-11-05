@@ -14,7 +14,10 @@ import '../reader_palette.dart';
 /// Text size, theme, line spacing and width controls. Used by the reader's
 /// settings sheet and the Settings screen; changes apply immediately.
 class ReaderSettingsPanel extends StatelessWidget {
-  const ReaderSettingsPanel({super.key});
+  const ReaderSettingsPanel({super.key, this.forOriginalPdf = false});
+
+  /// When true, hide typography controls that do not apply to PDF pages.
+  final bool forOriginalPdf;
 
   @override
   Widget build(BuildContext context) {
@@ -23,13 +26,26 @@ class ReaderSettingsPanel extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       mainAxisSize: MainAxisSize.min,
       children: [
-        _Label(
-          'Text size',
-          trailing: prefs.fontSize.toStringAsFixed(0),
-        ),
-        const AppGap.xs(),
-        _FontSizeSlider(prefs: prefs),
-        const AppGap.lg(),
+        if (!forOriginalPdf) ...[
+          _Label(
+            'Text size',
+            trailing: prefs.fontSize.toStringAsFixed(0),
+          ),
+          const AppGap.xs(),
+          _FontSizeSlider(prefs: prefs),
+          const AppGap.lg(),
+        ] else ...[
+          Text(
+            'Pinch to zoom the original document. Text size and line spacing '
+            'do not change PDF typography. Document colours stay original '
+            'in every theme.',
+            style: AppTypography.caption(context).copyWith(
+              color: AppColors.neutral0.withOpacity(0.72),
+              height: 1.45,
+            ),
+          ),
+          const AppGap.lg(),
+        ],
         const _Label('Reading theme'),
         const AppGap.sm(),
         Row(
@@ -47,31 +63,46 @@ class ReaderSettingsPanel extends StatelessWidget {
             ],
           ],
         ),
-        const AppGap.lg(),
-        const _Label('Line spacing'),
-        const AppGap.sm(),
-        SegmentedChoice<ReaderLineHeight>(
-          values: ReaderLineHeight.values,
-          selected: prefs.lineHeight,
-          labelOf: (ReaderLineHeight v) => v.label,
-          onSelected: prefs.setLineHeight,
-        ),
-        const AppGap.lg(),
-        const _Label('Reading width'),
-        const AppGap.sm(),
-        SegmentedChoice<ReaderWidth>(
-          values: ReaderWidth.values,
-          selected: prefs.width,
-          labelOf: (ReaderWidth v) => v.label,
-          onSelected: prefs.setWidth,
-        ),
+        if (!forOriginalPdf) ...[
+          const AppGap.lg(),
+          const _Label('Line spacing'),
+          const AppGap.sm(),
+          SegmentedChoice<ReaderLineHeight>(
+            values: ReaderLineHeight.values,
+            selected: prefs.lineHeight,
+            labelOf: (ReaderLineHeight v) => v.label,
+            onSelected: prefs.setLineHeight,
+          ),
+          const AppGap.lg(),
+          const _Label('Reading width'),
+          const AppGap.sm(),
+          SegmentedChoice<ReaderWidth>(
+            values: ReaderWidth.values,
+            selected: prefs.width,
+            labelOf: (ReaderWidth v) => v.label,
+            onSelected: prefs.setWidth,
+          ),
+        ] else ...[
+          const AppGap.lg(),
+          const _Label('Reading width'),
+          const AppGap.sm(),
+          SegmentedChoice<ReaderWidth>(
+            values: ReaderWidth.values,
+            selected: prefs.width,
+            labelOf: (ReaderWidth v) => v.label,
+            onSelected: prefs.setWidth,
+          ),
+        ],
       ],
     );
   }
 }
 
 /// Opens [ReaderSettingsPanel] in a compact bottom sheet.
-Future<void> showReaderSettingsSheet(BuildContext context) {
+Future<void> showReaderSettingsSheet(
+  BuildContext context, {
+  bool forOriginalPdf = false,
+}) {
   return showModalBottomSheet<void>(
     context: context,
     isScrollControlled: true,
@@ -114,7 +145,7 @@ Future<void> showReaderSettingsSheet(BuildContext context) {
                 ),
               ),
               const AppGap.xl(),
-              const ReaderSettingsPanel(),
+              ReaderSettingsPanel(forOriginalPdf: forOriginalPdf),
             ],
           ),
         ),
@@ -201,8 +232,7 @@ class _FontSizeSlider extends StatelessWidget {
               divisions: (ReaderPreferences.maxFontSize -
                       ReaderPreferences.minFontSize)
                   .round(),
-              semanticFormatterCallback: (double v) =>
-                  'Text size ${v.round()}',
+              semanticFormatterCallback: (double v) => 'Text size ${v.round()}',
               onChanged: prefs.setFontSize,
               onChangeEnd: (_) => prefs.commitFontSize(),
             ),
@@ -251,9 +281,8 @@ class _ThemeSwatch extends StatelessWidget {
                   colors: <Color>[palette.background, palette.backgroundEnd],
                 ),
                 border: Border.all(
-                  color: selected
-                      ? AppColors.brandPrimary
-                      : AppColors.borderDark,
+                  color:
+                      selected ? AppColors.brandPrimary : AppColors.borderDark,
                   width: selected ? AppSizes.borderThick : AppSizes.borderThin,
                 ),
                 boxShadow: selected

@@ -7,6 +7,7 @@ import '../core/constants/app_constants.dart';
 import '../design_system/theme/app_colors.dart';
 import '../design_system/theme/app_theme.dart';
 import '../features/home/state/home_language_preference.dart';
+import '../features/reader/data/pdf_temp_cleanup.dart';
 import '../features/reader/state/reader_preferences.dart';
 import '../routing/app_router.dart';
 import '../routing/app_routes.dart';
@@ -31,6 +32,9 @@ class _MaanthirigamAppState extends State<MaanthirigamApp> {
     widget.container.readerPreferences.load();
     widget.container.homeLanguage.load();
     widget.container.deepLinks.start(AppRouter.navigatorKey);
+    // Best-effort: drop any leftover private PDF temp files from prior runs.
+    // Primary PDF path uses Range streaming (no disk); this is defensive.
+    PdfTempCleanup.clearAll();
   }
 
   @override
@@ -55,6 +59,16 @@ class _MaanthirigamAppState extends State<MaanthirigamApp> {
     final LibraryController library = widget.container.libraryController;
     if (auth.isAuthenticated != _wasAuthenticated) {
       _wasAuthenticated = auth.isAuthenticated;
+      // Drop protected chapter-image memory so accounts never share a cache.
+      widget.container.chapterMediaLoader
+          .bindUser(auth.isAuthenticated ? auth.user?.id : null);
+      // Scope PDF progress to the active account; clear disk leftovers.
+      widget.container.pdfProgressStore
+          .bindUser(auth.isAuthenticated ? auth.user?.id : null);
+      if (!auth.isAuthenticated) {
+        widget.container.pdfProgressStore.clearCurrentUser();
+        PdfTempCleanup.clearAll();
+      }
       if (auth.isAuthenticated) {
         library.refresh();
       } else {

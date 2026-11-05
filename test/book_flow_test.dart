@@ -12,6 +12,7 @@ import 'package:maanthirigam/core/storage/session_store.dart';
 import 'package:maanthirigam/data/services/razorpay_checkout.dart';
 import 'package:maanthirigam/design_system/components/navigation/app_tab_bar.dart';
 import 'package:maanthirigam/features/book_details/presentation/screens/book_details_screen.dart';
+import 'package:maanthirigam/data/models/rich_text_document.dart';
 import 'package:maanthirigam/features/reader/presentation/widgets/reader_image_viewer.dart';
 import 'package:maanthirigam/features/reader/presentation/widgets/reader_inline_image.dart';
 import 'package:maanthirigam/features/reader/state/reader_preferences.dart';
@@ -41,9 +42,9 @@ String _bookJson(String id, String title, {required bool paid}) => '''
  "currency":"INR","status":"PUBLISHED"}''';
 
 String _chapterJson(String bookId, String id, int number, String title,
-    {bool content = false, String? blocks}) {
+    {bool content = false, String? blocks, int version = 1}) {
   final String body = content
-      ? ',"content":{"version":1,"blocks":[${blocks ?? '{"id":"b$id","type":"paragraph","text":"Body of $title"}'}]}'
+      ? ',"content":{"version":$version,"blocks":[${blocks ?? '{"id":"b$id","type":"paragraph","text":"Body of $title"}'}]}'
       : '';
   return '{"id":"$id","bookId":"$bookId","chapterNumber":$number,"title":"$title",'
       '"contentFormat":"RICH_TEXT","status":"PUBLISHED"$body}';
@@ -52,7 +53,11 @@ String _chapterJson(String bookId, String id, int number, String title,
 /// Scripted backend whose `/library` reflects verified purchases, like the
 /// real entitlement store.
 class _FakeBackend extends http.BaseClient {
-  _FakeBackend({bool guestFreeReading = false, String? firstChapterBlocks}) {
+  _FakeBackend({
+    bool guestFreeReading = false,
+    String? firstChapterBlocks,
+    int firstChapterVersion = 1,
+  }) {
     final Map<String, http.Response> routes = <String, http.Response>{
       'GET /api/v1/app-config': jsonOk(sampleAppConfig.replaceFirst(
         '"allowGuestFreeBookReading": true',
@@ -87,7 +92,9 @@ class _FakeBackend extends http.BaseClient {
     for (int i = 0; i < _freeTitles.length; i++) {
       routes['GET /api/v1/books/$_freeId/chapters/ch${i + 1}'] = jsonOk(_ok(
           _chapterJson(_freeId, 'ch${i + 1}', i + 1, _freeTitles[i],
-              content: true, blocks: i == 0 ? firstChapterBlocks : null)));
+              content: true,
+              blocks: i == 0 ? firstChapterBlocks : null,
+              version: i == 0 ? firstChapterVersion : 1)));
     }
     _scripted = ScriptedHttpClient(routes);
   }
@@ -185,8 +192,11 @@ void main() {
   late FakeCheckout checkout;
   late AppContainer container;
 
-  void setUpContainer({String? firstChapterBlocks}) {
-    backend = _FakeBackend(firstChapterBlocks: firstChapterBlocks);
+  void setUpContainer({String? firstChapterBlocks, int firstChapterVersion = 1}) {
+    backend = _FakeBackend(
+      firstChapterBlocks: firstChapterBlocks,
+      firstChapterVersion: firstChapterVersion,
+    );
     google = FakeGoogleAuth();
     firebase = FakeFirebaseAuth();
     checkout = FakeCheckout();
@@ -650,25 +660,32 @@ void main() {
       () => createTestImage(width: 64, height: 48),
     ))!;
     final Set<String> requested = <String>{};
-    debugReaderImageProvider = (String url) {
-      requested.add(url);
+    debugReaderImageProvider = (RichTextImage image) {
+      requested.add(image.mediaId);
       return TestImageProvider(picture);
     };
-    addTearDown(() => debugReaderImageProvider = null);
+    addTearDown(() {
+      debugReaderImageProvider = null;
+      debugChapterMediaLoader = null;
+    });
 
+    String mediaId(int i) =>
+        '507f1f77bcf86cd79943${i.toString().padLeft(4, '0')}';
     final String blocks = <String>[
       for (int i = 0; i < 30; i++) ...<String>[
         '{"id":"p$i","type":"paragraph","text":"Paragraph $i of the opening '
             'chapter, long enough to fill part of the page."}',
-        '{"id":"img$i","type":"image","url":"https://cdn.example.com/$i.jpg",'
-            '"alt":"Plate $i","caption":"Caption $i","width":800,"height":600}',
+        '{"id":"img$i","type":"image","mediaId":"${mediaId(i)}",'
+            '"url":"https://api.maandhrigam.demosvr.in/api/v1/media/${mediaId(i)}",'
+            '"alt":"Plate $i","caption":"Caption $i","width":800,"height":600,'
+            '"fit":"contain"}',
       ],
       '{"id":"aud","type":"audio","url":"https://cdn.example.com/a.mp3","title":"Chant"}',
       '{"id":"vid","type":"video","url":"https://cdn.example.com/v.mp4","title":"Ritual"}',
       '{"id":"unk","type":"carousel","text":"Unknown"}',
       '{"id":"end","type":"paragraph","text":"The end."}',
     ].join(',');
-    setUpContainer(firstChapterBlocks: blocks);
+    setUpContainer(firstChapterBlocks: blocks, firstChapterVersion: 2);
     await signInBeforeLaunch();
     await launch(tester);
     await openBook(tester, _freeId);

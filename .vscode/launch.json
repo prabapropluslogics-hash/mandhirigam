@@ -2,7 +2,7 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "mantirigam (Render)",
+      "name": "mantirigam (api.maandhrigam.demosvr.in)",
       "request": "launch",
       "type": "dart",
       "program": "lib/main.dart",

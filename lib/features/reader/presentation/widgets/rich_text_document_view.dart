@@ -193,15 +193,24 @@ class ParagraphBlock extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Text.rich(
+    final TextStyle base = style.body(context);
+    final Widget text = Text.rich(
       buildMarkedSpan(
         context,
         block.text,
         block.marks,
-        style.body(context),
+        block.isInstruction
+            ? base.copyWith(
+                fontWeight: FontWeight.w600,
+                color: style.accent(context),
+                letterSpacing: 0.2,
+              )
+            : base,
         boldWeight: style.boldWeight,
       ),
     );
+    if (!block.isInstruction) return text;
+    return InstructionPresentation(style: style, child: text);
   }
 }
 
@@ -218,16 +227,56 @@ class HeadingBlock extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final int level = (block.level ?? 1).clamp(1, 3);
-    return Semantics(
+    final TextStyle heading = style.heading(context, level);
+    final Widget text = Semantics(
       header: true,
       child: Text.rich(
         buildMarkedSpan(
           context,
           block.text,
           block.marks,
-          style.heading(context, level),
+          block.isInstruction
+              ? heading.copyWith(color: style.accent(context))
+              : heading,
           boldWeight: style.boldWeight,
         ),
+      ),
+    );
+    if (!block.isInstruction) return text;
+    return InstructionPresentation(style: style, child: text);
+  }
+}
+
+/// Clean instructional label presentation (`presentation: "instruction"`).
+class InstructionPresentation extends StatelessWidget {
+  const InstructionPresentation({
+    super.key,
+    required this.child,
+    this.style = const ReadingStyle(),
+  });
+
+  final Widget child;
+  final ReadingStyle style;
+
+  @override
+  Widget build(BuildContext context) {
+    final Color accent = style.accent(context);
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: accent.withOpacity(0.08),
+        borderRadius: BorderRadius.circular(6),
+        border: Border(
+          left: BorderSide(color: accent.withOpacity(0.85), width: 3),
+        ),
+      ),
+      child: Padding(
+        padding: EdgeInsets.fromLTRB(
+          style.fontSize * 0.7,
+          style.fontSize * 0.45,
+          style.fontSize * 0.55,
+          style.fontSize * 0.45,
+        ),
+        child: child,
       ),
     );
   }

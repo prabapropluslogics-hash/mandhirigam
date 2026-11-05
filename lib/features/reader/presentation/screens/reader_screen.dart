@@ -25,6 +25,7 @@ import '../../../book_details/presentation/screens/book_details_screen.dart';
 import '../../../payment/presentation/payment_flow.dart';
 import '../../state/reader_preferences.dart';
 import '../reader_palette.dart';
+import '../widgets/original_pdf_reader.dart';
 import '../widgets/reader_chapter_sheet.dart';
 import '../widgets/reader_paper.dart';
 import '../widgets/reader_settings_panel.dart';
@@ -230,6 +231,7 @@ class _ReaderScreenState extends State<ReaderScreen> {
                         data: palette.theme(),
                         child: ReaderSurface(
                           palette: palette,
+                          fadeContent: !(_chapter?.isOriginalPdf ?? false),
                           child: AnimatedSwitcher(
                             duration: const Duration(milliseconds: 220),
                             child: KeyedSubtree(
@@ -254,7 +256,10 @@ class _ReaderScreenState extends State<ReaderScreen> {
                 onPrevious: hasPrevious ? () => _goTo(index - 1) : null,
                 onNext: hasNext ? () => _goTo(index + 1) : null,
                 onToggleTheme: () => _toggleDarkTheme(prefs),
-                onSettings: () => showReaderSettingsSheet(context),
+                onSettings: () => showReaderSettingsSheet(
+                  context,
+                  forOriginalPdf: _chapter?.isOriginalPdf ?? false,
+                ),
               ),
             ],
           ),
@@ -306,9 +311,49 @@ class _ReaderScreenState extends State<ReaderScreen> {
         message: 'This chapter could not be opened.',
       );
     }
+
+    if (chapter.isOriginalPdf) {
+      final String? pdfError = chapter.pdfOpenError();
+      if (pdfError != null) {
+        return AppEmptyState(
+          icon: AppIcons.error,
+          title: 'PDF unavailable',
+          message: pdfError,
+          action: AppButton(
+            label: 'Retry',
+            isExpanded: false,
+            backgroundColor: palette.accent,
+            foregroundColor: palette.background,
+            onPressed: _load,
+          ),
+        );
+      }
+      return OriginalPdfReader(
+        chapter: chapter,
+        palette: palette,
+        onRestricted: _handleRestricted,
+      );
+    }
+
+    final RichTextDocument? document = chapter.content;
+    if (document == null) {
+      return AppEmptyState(
+        icon: AppIcons.error,
+        title: 'Chapter unavailable',
+        message: 'This chapter has no readable content.',
+        action: AppButton(
+          label: 'Retry',
+          isExpanded: false,
+          backgroundColor: palette.accent,
+          foregroundColor: palette.background,
+          onPressed: _load,
+        ),
+      );
+    }
+
     final ReadingStyle style = palette.readingStyle(prefs);
     final double side = prefs.width.sidePadding;
-    final List<RichTextBlock> blocks = visibleBlocks(chapter.content);
+    final List<RichTextBlock> blocks = visibleBlocks(document);
     return Scrollbar(
       controller: _scroll,
       child: ListView.builder(

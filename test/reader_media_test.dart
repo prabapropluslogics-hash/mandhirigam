@@ -12,15 +12,26 @@ import 'package:maanthirigam/features/reader/presentation/widgets/rich_text_docu
 
 import 'support/test_images.dart';
 
-RichTextDocument _parse(String blocks) => RichTextDocument.fromJson(
-      jsonDecode('{"version":1,"blocks":[$blocks]}') as Map<String, dynamic>,
+const String _mediaId = '507f1f77bcf86cd799439011';
+const String _mediaUrl =
+    'https://api.maandhrigam.demosvr.in/api/v1/media/$_mediaId';
+const String _mediaId2 = '507f1f77bcf86cd799439012';
+const String _mediaUrl2 =
+    'https://api.maandhrigam.demosvr.in/api/v1/media/$_mediaId2';
+
+RichTextDocument _parse(String blocks, {int version = 1}) =>
+    RichTextDocument.fromJson(
+      jsonDecode('{"version":$version,"blocks":[$blocks]}')
+          as Map<String, dynamic>,
     );
 
-const String _mixedBlocks = '''
+const String _v2MixedBlocks = '''
 {"id":"blk_t1","type":"paragraph","text":"First words"},
-{"id":"blk_img","type":"image","url":"https://cdn.example.com/a.jpg",
+{"id":"blk_h","type":"heading","level":2,"text":"செய்முறை",
+ "presentation":"instruction","source":{"page":3,"order":1}},
+{"id":"blk_img","type":"image","mediaId":"$_mediaId","url":"$_mediaUrl",
  "caption":"Temple wall","alt":"Carved stone","width":1200,"height":800,
- "mediaId":"m1","mimeType":"image/jpeg","futureField":{"x":1}},
+ "fit":"contain","source":{"page":3,"order":2}},
 {"id":"blk_t2","type":"paragraph","text":"Middle words"},
 {"id":"blk_audio","type":"audio","url":"https://cdn.example.com/a.mp3",
  "title":"Chant","durationSeconds":95,"mimeType":"audio/mpeg"},
@@ -32,8 +43,8 @@ const String _mixedBlocks = '''
 ''';
 
 void main() {
-  group('parsing', () {
-    test('Rich Text V1 documents parse exactly as before', () {
+  group('Rich Text V1 regression', () {
+    test('V1 documents parse exactly as before', () {
       final RichTextDocument document = _parse('''
 {"id":"p","type":"paragraph","text":"Hello world",
  "marks":[{"start":0,"end":5,"type":"bold"}]},
@@ -42,6 +53,8 @@ void main() {
 {"id":"o","type":"ordered_list","items":[{"text":"First"}]},
 {"id":"q","type":"quote","text":"Quoted"}
 ''');
+      expect(document.version, 1);
+      expect(document.isV1, isTrue);
       expect(
         document.blocks.map((RichTextBlock b) => b.type),
         <String>[
@@ -49,24 +62,41 @@ void main() {
           'heading',
           'bullet_list',
           'ordered_list',
-          'quote'
+          'quote',
         ],
       );
       expect(
-          document.blocks.every((RichTextBlock b) => b.media == null), isTrue);
+        document.blocks.every((RichTextBlock b) => b.media == null),
+        isTrue,
+      );
       expect(document.blocks[0].marks.single.isBold, isTrue);
       expect(document.blocks[1].level, 2);
-      expect(document.blocks[2].items.map((RichTextListItem i) => i.text),
-          <String>['One', 'Two']);
+      expect(
+        document.blocks[2].items.map((RichTextListItem i) => i.text),
+        <String>['One', 'Two'],
+      );
       expect(visibleBlocks(document), hasLength(5));
     });
 
-    test('image blocks keep their position and metadata', () {
-      final RichTextDocument document = _parse(_mixedBlocks);
+    test('image blocks are ignored in V1 documents', () {
+      final RichTextDocument document = _parse('''
+{"id":"p","type":"paragraph","text":"Only text"},
+{"id":"i","type":"image","mediaId":"$_mediaId","url":"$_mediaUrl",
+ "alt":"Should not appear"}
+''');
+      expect(document.blocks.map((RichTextBlock b) => b.id), <String>['p']);
+    });
+  });
+
+  group('Rich Text V2 parsing', () {
+    test('image blocks keep position and metadata', () {
+      final RichTextDocument document = _parse(_v2MixedBlocks, version: 2);
+      expect(document.isV2, isTrue);
       expect(
         document.blocks.map((RichTextBlock b) => b.id),
         <String>[
           'blk_t1',
+          'blk_h',
           'blk_img',
           'blk_t2',
           'blk_audio',
@@ -75,21 +105,25 @@ void main() {
           'blk_t4',
         ],
       );
-      final RichTextImage image = document.blocks[1].image!;
-      expect(image.url, 'https://cdn.example.com/a.jpg');
+      final RichTextImage image = document.blocks[2].image!;
+      expect(image.url, _mediaUrl);
+      expect(image.mediaId, _mediaId);
       expect(image.caption, 'Temple wall');
       expect(image.alt, 'Carved stone');
       expect(image.width, 1200);
       expect(image.height, 800);
+      expect(image.fit, 'contain');
       expect(image.aspectRatio, 1.5);
-      expect(image.mediaId, 'm1');
-      expect(image.mimeType, 'image/jpeg');
+      expect(image.source?.page, 3);
+      expect(document.blocks[1].isInstruction, isTrue);
+      expect(document.blocks[1].source?.order, 1);
     });
 
     test('an image without optional metadata still parses', () {
       final RichTextImage image = _parse(
-        '{"id":"i","type":"image","url":"https://cdn.example.com/b.png",'
+        '{"id":"i","type":"image","mediaId":"$_mediaId","url":"$_mediaUrl",'
         '"caption":"  ","width":0,"height":null}',
+        version: 2,
       ).blocks.single.image!;
       expect(image.caption, isNull);
       expect(image.alt, isNull);
@@ -98,80 +132,74 @@ void main() {
       expect(image.aspectRatio, isNull);
     });
 
-    test('audio blocks are recognised with their metadata', () {
-      final RichTextBlock block = _parse(_mixedBlocks).blocks[3];
-      expect(block.isAudio, isTrue);
-      final RichTextAudio audio = block.audio!;
-      expect(audio.url, 'https://cdn.example.com/a.mp3');
-      expect(audio.title, 'Chant');
-      expect(audio.duration, const Duration(seconds: 95));
-      expect(audio.mimeType, 'audio/mpeg');
-    });
-
-    test('video blocks are recognised with their metadata', () {
-      final RichTextBlock block = _parse(_mixedBlocks).blocks[5];
-      expect(block.isVideo, isTrue);
-      final RichTextVideo video = block.video!;
-      expect(video.url, 'https://cdn.example.com/v.mp4');
-      expect(video.thumbnailUrl, 'https://cdn.example.com/v.jpg');
-      expect(video.title, 'Ritual');
-      expect(video.duration, const Duration(seconds: 42));
-      expect(video.width, 1920);
-      expect(video.height, 1080);
-    });
-
-    test('unknown and malformed blocks are skipped, the rest is kept', () {
+    test('rejects CDN URLs, admin routes and invalid media ids', () {
       final RichTextDocument document = _parse('''
-{"id":"a","type":"paragraph","text":"Kept"},
-{"id":"u","type":"carousel","items":[]},
-{"id":"n","type":"image","url":null},
-{"id":"r","type":"image","url":"/media/x.jpg"},
-{"id":"j","type":"image","url":"javascript:alert(1)"},
-{"id":"x","type":"video","url":42},
-{"id":"m","type":"audio"},
-"not a block",
-7,
-{"id":"t","text":"No type"},
-{"id":"z","type":"quote","text":"Also kept","extra":true}
-''');
-      expect(document.blocks.map((RichTextBlock b) => b.id),
-          <String>['a', 't', 'z']);
-      expect(document.blocks[1].isParagraph, isTrue);
+{"id":"cdn","type":"image","mediaId":"$_mediaId",
+ "url":"https://cdn.example.com/$_mediaId.jpg"},
+{"id":"admin","type":"image","mediaId":"$_mediaId",
+ "url":"https://api.example.com/api/v1/admin/media/$_mediaId"},
+{"id":"covers","type":"image","mediaId":"$_mediaId",
+ "url":"https://api.example.com/api/v1/media/covers/$_mediaId"},
+{"id":"badid","type":"image","mediaId":"not-an-object-id",
+ "url":"https://api.example.com/api/v1/media/not-an-object-id"},
+{"id":"ok","type":"paragraph","text":"Kept"}
+''', version: 2);
+      expect(document.blocks.map((RichTextBlock b) => b.id), <String>['ok']);
     });
 
-    test('chapter content with media parses through ChapterContent', () {
-      final ChapterContent chapter = ChapterContent.fromJson(
-        jsonDecode('{"id":"c1","bookId":"b1","chapterNumber":1,'
-                '"title":"One","content":{"version":1,"blocks":[$_mixedBlocks]}}')
-            as Map<String, dynamic>,
-      );
-      expect(chapter.content.blocks, hasLength(7));
-    });
-
-    test('only text and images are visible in this release', () {
-      final RichTextDocument document = _parse(_mixedBlocks);
+    test('audio and video are recognised but not visible', () {
+      final RichTextDocument document = _parse(_v2MixedBlocks, version: 2);
+      expect(document.blocks[4].isAudio, isTrue);
+      expect(document.blocks[4].audio!.title, 'Chant');
+      expect(document.blocks[6].isVideo, isTrue);
+      expect(document.blocks[6].video!.title, 'Ritual');
       expect(
         visibleBlocks(document).map((RichTextBlock b) => b.id),
-        <String>['blk_t1', 'blk_img', 'blk_t2', 'blk_t3', 'blk_t4'],
+        <String>['blk_t1', 'blk_h', 'blk_img', 'blk_t2', 'blk_t3', 'blk_t4'],
       );
       expect(ReaderContentFeatures.current.readerImageSupport, isTrue);
       expect(ReaderContentFeatures.current.readerAudioSupport, isFalse);
       expect(ReaderContentFeatures.current.readerVideoSupport, isFalse);
+    });
+
+    test('unknown and malformed blocks are skipped', () {
+      final RichTextDocument document = _parse('''
+{"id":"a","type":"paragraph","text":"Kept"},
+{"id":"u","type":"carousel","items":[]},
+{"id":"n","type":"image","url":null},
+"not a block",
+7,
+{"id":"z","type":"quote","text":"Also kept","extra":true}
+''', version: 2);
       expect(
-        visibleBlocks(
-          document,
-          features: const ReaderContentFeatures(readerImageSupport: false),
-        ).any((RichTextBlock b) => b.isMedia),
-        isFalse,
+        document.blocks.map((RichTextBlock b) => b.id),
+        <String>['a', 'z'],
       );
+    });
+
+    test('chapter content with V2 media parses through ChapterContent', () {
+      final ChapterContent chapter = ChapterContent.fromJson(
+        jsonDecode(
+          '{"id":"c1","bookId":"b1","chapterNumber":1,'
+          '"title":"One","content":{"version":2,"blocks":[$_v2MixedBlocks]}}',
+        ) as Map<String, dynamic>,
+      );
+      expect(chapter.content!.version, 2);
+      expect(chapter.content!.blocks, hasLength(8));
     });
   });
 
   group('rendering', () {
     late ui.Image picture;
 
-    setUp(() => debugReaderImageProvider = null);
-    tearDown(() => debugReaderImageProvider = null);
+    setUp(() {
+      debugReaderImageProvider = null;
+      debugChapterMediaLoader = null;
+    });
+    tearDown(() {
+      debugReaderImageProvider = null;
+      debugChapterMediaLoader = null;
+    });
 
     Future<void> pumpDocument(
       WidgetTester tester,
@@ -189,16 +217,20 @@ void main() {
       await tester.pumpAndSettle();
     }
 
-    testWidgets('text and images render in order; audio and video stay hidden',
+    testWidgets(
+        'V2 text and images render in order; audio and video stay hidden',
         (WidgetTester tester) async {
       picture = (await tester.runAsync(
         () => createTestImage(width: 60, height: 40),
       ))!;
-      debugReaderImageProvider = (_) => TestImageProvider(picture);
+      debugReaderImageProvider =
+          (RichTextImage _) => TestImageProvider(picture);
 
-      await pumpDocument(tester, _parse(_mixedBlocks));
+      await pumpDocument(tester, _parse(_v2MixedBlocks, version: 2));
 
       expect(find.byType(ReaderInlineImage), findsOneWidget);
+      expect(find.byType(InstructionPresentation), findsOneWidget);
+      expect(find.text('செய்முறை'), findsOneWidget);
       expect(find.bySemanticsLabel('Carved stone'), findsOneWidget);
       expect(find.text('Temple wall'), findsOneWidget);
       expect(find.byKey(const ValueKey<String>('blk_audio')), findsNothing);
@@ -221,14 +253,17 @@ void main() {
       ))!;
       final TestImageProvider provider =
           TestImageProvider(picture, failures: 1);
-      debugReaderImageProvider = (_) => provider;
+      debugReaderImageProvider = (RichTextImage _) => provider;
 
       await pumpDocument(
         tester,
-        _parse('{"id":"a","type":"paragraph","text":"Before"},'
-            '{"id":"i","type":"image","url":"https://cdn.example.com/f.jpg",'
-            '"caption":"Lost plate"},'
-            '{"id":"b","type":"paragraph","text":"After"}'),
+        _parse(
+          '{"id":"a","type":"paragraph","text":"Before"},'
+          '{"id":"i","type":"image","mediaId":"$_mediaId","url":"$_mediaUrl",'
+          '"caption":"Lost plate"},'
+          '{"id":"b","type":"paragraph","text":"After"}',
+          version: 2,
+        ),
       );
 
       expect(find.text('Image unavailable'), findsOneWidget);
@@ -246,14 +281,17 @@ void main() {
       picture = (await tester.runAsync(
         () => createTestImage(width: 30, height: 30),
       ))!;
-      debugReaderImageProvider = (_) => TestImageProvider(picture);
+      debugReaderImageProvider =
+          (RichTextImage _) => TestImageProvider(picture);
 
       await pumpDocument(
         tester,
         _parse(
-            '{"id":"i1","type":"image","url":"https://cdn.example.com/1.jpg","alt":"One"},'
-            '{"id":"p","type":"paragraph","text":"Between"},'
-            '{"id":"i2","type":"image","url":"https://cdn.example.com/2.jpg","alt":"Two"}'),
+          '{"id":"i1","type":"image","mediaId":"$_mediaId","url":"$_mediaUrl","alt":"One"},'
+          '{"id":"p","type":"paragraph","text":"Between"},'
+          '{"id":"i2","type":"image","mediaId":"$_mediaId2","url":"$_mediaUrl2","alt":"Two"}',
+          version: 2,
+        ),
       );
 
       expect(find.byType(ReaderInlineImage), findsNWidgets(2));
@@ -263,14 +301,41 @@ void main() {
       );
     });
 
+    testWidgets('narrow layout does not overflow with images',
+        (WidgetTester tester) async {
+      picture = (await tester.runAsync(
+        () => createTestImage(width: 80, height: 40),
+      ))!;
+      debugReaderImageProvider =
+          (RichTextImage _) => TestImageProvider(picture);
+      await tester.binding.setSurfaceSize(const Size(320, 640));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      await pumpDocument(
+        tester,
+        _parse(
+          '{"id":"p","type":"paragraph","text":"'
+          'இது ஒரு நீண்ட தமிழ் பத்தி. செய்முறை விளக்கம் இங்கே உள்ளது. '
+          'இன்னும் சில வார்த்தைகள் சேர்க்கப்பட்டுள்ளன."},'
+          '{"id":"i","type":"image","mediaId":"$_mediaId","url":"$_mediaUrl",'
+          '"width":1600,"height":900,"alt":"Wide"}',
+          version: 2,
+        ),
+      );
+
+      expect(tester.takeException(), isNull);
+      expect(find.byType(ReaderInlineImage), findsOneWidget);
+    });
+
     testWidgets('the viewer shows the image and caption and closes',
         (WidgetTester tester) async {
       picture = (await tester.runAsync(
         () => createTestImage(width: 80, height: 40),
       ))!;
-      debugReaderImageProvider = (_) => TestImageProvider(picture);
+      debugReaderImageProvider =
+          (RichTextImage _) => TestImageProvider(picture);
 
-      await pumpDocument(tester, _parse(_mixedBlocks));
+      await pumpDocument(tester, _parse(_v2MixedBlocks, version: 2));
       await tester.tap(find.bySemanticsLabel('Carved stone'));
       await tester.pumpAndSettle();
 

@@ -37,9 +37,17 @@ class ReaderPaper extends StatelessWidget {
 /// The reading sheet. Olaichuvadi: aged parchment with burnt, slightly
 /// uneven edges, rolled ends and a faint palm frond. Dark and Light: a
 /// rounded page with a fine rule. [child] is clipped clear of the edges and
-/// fades softly at the top and bottom.
+/// (when [fadeContent] is true) fades softly at the top and bottom.
+///
+/// Original PDF mode sets [fadeContent] to false so the edge fade cannot
+/// corrupt PDF glyphs or Yantra lines. Rich Text keeps the historic fade.
 class ReaderSurface extends StatelessWidget {
-  const ReaderSurface({super.key, required this.palette, required this.child});
+  const ReaderSurface({
+    super.key,
+    required this.palette,
+    required this.child,
+    this.fadeContent = true,
+  });
 
   /// Space kept free of text at the top and bottom of the sheet.
   static const double edge = 16;
@@ -48,8 +56,33 @@ class ReaderSurface extends StatelessWidget {
   final ReaderPalette palette;
   final Widget child;
 
+  /// When false, content is only inset/clipped — no ShaderMask fade.
+  final bool fadeContent;
+
   @override
   Widget build(BuildContext context) {
+    Widget content = child;
+    if (fadeContent) {
+      content = ShaderMask(
+        blendMode: BlendMode.dstIn,
+        shaderCallback: (Rect bounds) {
+          final double stop =
+              bounds.height <= _fade * 2 ? 0 : _fade / bounds.height;
+          return LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: const <Color>[
+              Colors.transparent,
+              Colors.black,
+              Colors.black,
+              Colors.transparent,
+            ],
+            stops: <double>[0, stop, 1 - stop, 1],
+          ).createShader(bounds);
+        },
+        child: child,
+      );
+    }
     return Stack(
       children: [
         Positioned.fill(
@@ -65,27 +98,7 @@ class ReaderSurface extends StatelessWidget {
         Positioned.fill(
           top: edge,
           bottom: edge,
-          child: ClipRect(
-            child: ShaderMask(
-              blendMode: BlendMode.dstIn,
-              shaderCallback: (Rect bounds) {
-                final double stop =
-                    bounds.height <= _fade * 2 ? 0 : _fade / bounds.height;
-                return LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: const <Color>[
-                    Colors.transparent,
-                    Colors.black,
-                    Colors.black,
-                    Colors.transparent,
-                  ],
-                  stops: <double>[0, stop, 1 - stop, 1],
-                ).createShader(bounds);
-              },
-              child: child,
-            ),
-          ),
+          child: ClipRect(child: content),
         ),
       ],
     );

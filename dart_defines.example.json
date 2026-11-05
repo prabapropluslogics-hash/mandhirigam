@@ -1,5 +1,5 @@
 {
-  "API_BASE_URL": "https://mandhirigam-admin.onrender.com/api/v1",
+  "API_BASE_URL": "https://api.maandhrigam.demosvr.in/api/v1",
   "GOOGLE_SERVER_CLIENT_ID": "",
   "APP_SHARE_BASE_URL": "",
   "RAZORPAY_TEST_KEY_ID": "",

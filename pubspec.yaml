@@ -23,6 +23,12 @@ dependencies:
   firebase_core: ^3.4.0
   firebase_auth: ^5.2.0
   share_plus: 10.0.0
+  # Flutter 3.19.3 / Dart 3.3.x compatible PDFium viewer.
+  # Do not float to 2.x (requires a newer Flutter toolchain).
+  # 1.0.85+ pulls path_provider >=2.1.5 (Dart >=3.4).
+  pdfrx: 1.0.84
+  # Direct dep: PDF temp cleanup; also pulled transitively by pdfrx 1.0.84.
+  path_provider: 2.1.4
 
 dev_dependencies:
   flutter_lints: ^4.0.0

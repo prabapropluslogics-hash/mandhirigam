@@ -5,16 +5,16 @@ Flutter mobile app for Mantirigam, integrated with the backend contract in
 
 ## API base URL
 
-Default (production Render):
+Default:
 
 ```text
-https://mandhirigam-admin.onrender.com/api/v1
+https://api.maandhrigam.demosvr.in/api/v1
 ```
 
 Startup request:
 
 ```text
-GET https://mandhirigam-admin.onrender.com/api/v1/app-config
+GET https://api.maandhrigam.demosvr.in/api/v1/app-config
 ```
 
 ## Run

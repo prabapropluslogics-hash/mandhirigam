@@ -11,13 +11,18 @@ class RichTextDocument {
     required this.blocks,
   });
 
+  /// 1 = frozen Rich Text V1; 2 = V2 (includes image blocks).
   final int version;
 
-  /// Blocks in reading order. Unknown block types and media blocks without
-  /// a usable URL are left out, so one bad block never breaks a chapter.
+  /// Blocks in reading order. Unknown / invalid blocks are omitted so one
+  /// bad entry never breaks a chapter.
   final List<RichTextBlock> blocks;
 
+  bool get isV1 => version <= 1;
+  bool get isV2 => version >= 2;
+
   factory RichTextDocument.fromJson(Map<String, dynamic> json) {
+    final int version = asInt(json['version'], 1);
     final Object? blocksRaw = json['blocks'];
     final List<RichTextBlock> blocks = <RichTextBlock>[];
     if (blocksRaw is List) {
@@ -25,24 +30,41 @@ class RichTextDocument {
         if (item is! Map) continue;
         final RichTextBlock block;
         try {
-          block = RichTextBlock.fromJson(Map<String, dynamic>.from(item));
+          block = RichTextBlock.fromJson(
+            Map<String, dynamic>.from(item),
+            documentVersion: version,
+          );
         } catch (_) {
           _skipped('malformed block');
           continue;
         }
-        if (!block.isKnownType) {
-          _skipped('unsupported block type');
-        } else if (block.isMedia && block.media == null) {
-          _skipped('${block.type} block without a usable url');
-        } else {
-          blocks.add(block);
+        if (!_keep(block, version)) {
+          if (!block.isKnownType) {
+            _skipped('unsupported block type');
+          } else if (block.isImage && version < 2) {
+            _skipped('image block in V1 document');
+          } else if (block.isMedia && block.media == null) {
+            _skipped('${block.type} block without usable media');
+          } else {
+            _skipped('${block.type} block');
+          }
+          continue;
         }
+        blocks.add(block);
       }
     }
-    return RichTextDocument(
-      version: asInt(json['version'], 1),
-      blocks: blocks,
-    );
+    return RichTextDocument(version: version, blocks: blocks);
+  }
+
+  static bool _keep(RichTextBlock block, int version) {
+    if (!block.isKnownType) return false;
+    if (block.isImage) {
+      return version >= 2 && block.media != null;
+    }
+    if (block.isAudio || block.isVideo) {
+      return block.media != null;
+    }
+    return block.isText;
   }
 
   static void _skipped(String reason) {
@@ -92,6 +114,8 @@ class RichTextBlock {
     this.marks = const <RichTextMark>[],
     this.items = const <RichTextListItem>[],
     this.media,
+    this.presentation,
+    this.source,
   });
 
   final String id;
@@ -101,8 +125,14 @@ class RichTextBlock {
   final List<RichTextMark> marks;
   final List<RichTextListItem> items;
 
-  /// Set for `image`, `audio` and `video` blocks with a usable URL.
+  /// Set for `image` / prepared audio / video with usable media.
   final RichTextMedia? media;
+
+  /// Optional V1/V2 presentation, e.g. `instruction` for labels like செய்முறை.
+  final String? presentation;
+
+  /// Optional import source metadata (page/order). Not shown in the UI.
+  final RichTextSource? source;
 
   bool get isParagraph => type == RichTextBlockType.paragraph;
   bool get isHeading => type == RichTextBlockType.heading;
@@ -116,6 +146,9 @@ class RichTextBlock {
   bool get isText => RichTextBlockType.text.contains(type);
   bool get isMedia => RichTextBlockType.media.contains(type);
   bool get isKnownType => isText || isMedia;
+
+  bool get isInstruction =>
+      presentation == RichTextBlockType.presentationInstruction;
 
   RichTextImage? get image {
     final RichTextMedia? media = this.media;
@@ -132,7 +165,10 @@ class RichTextBlock {
     return media is RichTextVideo ? media : null;
   }
 
-  factory RichTextBlock.fromJson(Map<String, dynamic> json) {
+  factory RichTextBlock.fromJson(
+    Map<String, dynamic> json, {
+    int documentVersion = 1,
+  }) {
     final Object? marksRaw = json['marks'];
     final List<RichTextMark> marks = <RichTextMark>[];
     if (marksRaw is List) {
@@ -152,6 +188,7 @@ class RichTextBlock {
       }
     }
     final String type = asString(json['type'], RichTextBlockType.paragraph);
+    final String? presentation = asStringOrNull(json['presentation']);
     return RichTextBlock(
       id: asString(json['id']),
       type: type,
@@ -159,7 +196,13 @@ class RichTextBlock {
       level: json['level'] == null ? null : asInt(json['level']),
       marks: marks,
       items: items,
-      media: RichTextMedia.fromBlock(type, json),
+      media: RichTextMedia.fromBlock(
+        type,
+        json,
+        documentVersion: documentVersion,
+      ),
+      presentation: presentation,
+      source: RichTextSource.tryParse(json['source']),
     );
   }
 }

@@ -1305,4 +1305,99 @@ Useful for connectivity checks; not a product feature API.
 
 ---
 
+## 30. Images
+
+Existing book `coverImage`, announcement `imageUrl`, and app-config `logoUrl` / `heroImageUrl` remain URL strings. Flutter should keep rendering those URLs and show a fallback if the image request fails.
+
+Uploaded images are served from:
+
+```http
+GET /api/v1/media/:id
+```
+
+- Public purposes (`book_cover`, `announcement_image`, `app_logo`, `app_hero`, public `user_profile`) remain anonymously readable.
+- Private `chapter_image` assets require a mobile user Bearer token and the same entitlement rules as chapter reading (`PURCHASE_REQUIRED` when unpaid). Free published books allow entitled/guest rules consistent with chapter access.
+- `import_page_preview` assets are Admin-only and must never be requested by Flutter readers.
+- Response is image bytes with `Content-Type` `image/jpeg`, `image/png`, or `image/webp`.
+
+### Rich Text V2 (pending Flutter)
+
+Backend Admin can create draft chapters with `content.version = 2` and `image` blocks. Flutter must **not** assume V2 is published until `ALLOW_RICH_TEXT_V2_PUBLISH` is enabled after mobile rendering lands. Contract details: `docs/RICH_TEXT_V2.md`.
+
+### Original PDF chapters (pending Flutter)
+
+Chapters may include `readerMode`:
+
+- missing / `RICH_TEXT` → existing content rendering
+- `ORIGINAL_PDF` → use `document.downloadPath` with Bearer auth + Range support
+
+Publishing remains disabled until `ALLOW_ORIGINAL_PDF_PUBLISH=true` after Flutter QA. Full contract: `docs/ORIGINAL_PDF_READER.md`.
+
+```http
+GET /api/v1/books/:bookId/chapters/:chapterId/document
+Authorization: Bearer <accessToken>
+Range: bytes=0-65535
+```
+
+Never append tokens to the URL. Never treat `chapter_pdf` media IDs as public `/media/:id` assets.
+
+Older covers may still use:
+
+```http
+GET /api/v1/media/covers/:id
+```
+
+### Authenticated user profile image
+
+Implemented for the signed-in mobile user only. Do not send another user's id.
+
+```http
+POST /api/v1/users/me/profile-image
+Authorization: Bearer <accessToken>
+Content-Type: multipart/form-data
+```
+
+Field: `file` (JPEG, PNG, or WebP, max 2 MB). The API re-encodes the image and sets `profileImageUrl` to the public media URL.
+
+```json
+{
+  "success": true,
+  "data": {
+    "id": "<mediaId>",
+    "purpose": "user_profile",
+    "url": "https://api.example.com/api/v1/media/<mediaId>",
+    "contentType": "image/jpeg",
+    "width": 512,
+    "height": 512,
+    "byteSize": 12000
+  }
+}
+```
+
+Remove that upload:
+
+```http
+DELETE /api/v1/users/me/media/:id
+Authorization: Bearer <accessToken>
+```
+
+A user cannot delete another user's media (`403 FORBIDDEN`).
+
+Admin-only purposes (`book_cover`, `announcement_image`, `app_logo`, `app_hero`, `chapter_image`, `import_page_preview`) use `POST /api/v1/admin/media` with an admin session. Mobile clients must not call that route.
+
+### Errors
+
+| Code | Meaning |
+| ---- | ------- |
+| `INVALID_MEDIA` | Missing, corrupt, or unsupported image |
+| `MEDIA_TOO_LARGE` | Over 2 MB or over the pixel limit |
+| `MEDIA_STORAGE_NOT_CONFIGURED` | Server has no persistent image storage |
+| `UNAUTHENTICATED` | Missing or invalid bearer token |
+| `FORBIDDEN` | Purpose or owner is not allowed |
+| `RATE_LIMITED` | Too many uploads |
+
+Retry `429` and `503` later. Do not retry `400` or `403` with the same file.
+
+---
+
 *Generated from the Mantirigam Admin backend implementation. Flutter work belongs in the separate `mantirigam` repository using this file as the contract.*

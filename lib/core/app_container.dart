@@ -13,10 +13,12 @@ import '../data/services/books_api.dart';
 import '../data/services/firebase_auth_gateway.dart';
 import '../data/services/google_auth_gateway.dart';
 import '../data/services/library_api.dart';
+import '../data/services/chapter_media_loader.dart';
 import '../data/services/payments_api.dart';
 import '../data/services/razorpay_checkout.dart';
 import '../design_system/theme/app_colors.dart';
 import '../features/home/state/home_language_preference.dart';
+import '../features/reader/data/pdf_progress_store.dart';
 import '../features/reader/state/reader_preferences.dart';
 import '../services/deep_link_service.dart';
 import '../services/local_preferences.dart';
@@ -41,6 +43,8 @@ class AppContainer {
     required this.libraryController,
     required this.paymentController,
     required this.booksRepository,
+    required this.chapterMediaLoader,
+    required this.pdfProgressStore,
     required this.localPreferences,
     required this.readerPreferences,
     required this.homeLanguage,
@@ -56,6 +60,8 @@ class AppContainer {
   final LibraryController libraryController;
   final PaymentController paymentController;
   final BooksRepository booksRepository;
+  final ChapterMediaLoader chapterMediaLoader;
+  final PdfProgressStore pdfProgressStore;
   final LocalPreferences localPreferences;
   final ReaderPreferences readerPreferences;
   final HomeLanguagePreference homeLanguage;
@@ -80,7 +86,8 @@ class AppContainer {
           httpClient: httpClient,
           readAccessToken: store.readAccessToken,
           refreshAccessToken: () => auth.refreshAccessToken(),
-          onUnauthorized: (ApiException error) => auth.handleUnauthorized(error),
+          onUnauthorized: (ApiException error) =>
+              auth.handleUnauthorized(error),
         );
     auth = AuthController(
       AuthRepository(
@@ -91,6 +98,8 @@ class AppContainer {
       ),
     );
     final BooksRepository books = BooksRepository(BooksApi(client));
+    final ChapterMediaLoader chapterMedia = ChapterMediaLoader(client);
+    final PdfProgressStore pdfProgress = PdfProgressStore(preferences);
     return AppContainer(
       apiClient: client,
       sessionStore: store,
@@ -102,7 +111,8 @@ class AppContainer {
         ),
       ),
       catalogController: CatalogController(books),
-      libraryController: LibraryController(LibraryRepository(LibraryApi(client))),
+      libraryController:
+          LibraryController(LibraryRepository(LibraryApi(client))),
       paymentController: PaymentController(
         PaymentsRepository(
           api: PaymentsApi(client),
@@ -110,6 +120,8 @@ class AppContainer {
         ),
       ),
       booksRepository: books,
+      chapterMediaLoader: chapterMedia,
+      pdfProgressStore: pdfProgress,
       localPreferences: preferences,
       readerPreferences: ReaderPreferences(preferences),
       homeLanguage: HomeLanguagePreference(preferences),
@@ -140,14 +152,17 @@ class BrandingColors {
   factory BrandingColors.fromConfig(BrandingConfig branding) {
     return BrandingColors(
       primary: parseHexColorOr(branding.primaryColor, AppColors.brandPrimary),
-      secondary: parseHexColorOr(branding.secondaryColor, AppColors.brandSecondary),
+      secondary:
+          parseHexColorOr(branding.secondaryColor, AppColors.brandSecondary),
       button: parseHexColorOr(branding.buttonColor, AppColors.brandPrimary),
     );
   }
 
-  Color get onPrimary =>
-      primary.computeLuminance() > 0.55 ? AppColors.textOnBrand : AppColors.neutral0;
+  Color get onPrimary => primary.computeLuminance() > 0.55
+      ? AppColors.textOnBrand
+      : AppColors.neutral0;
 
-  Color get onButton =>
-      button.computeLuminance() > 0.55 ? AppColors.textOnBrand : AppColors.neutral0;
+  Color get onButton => button.computeLuminance() > 0.55
+      ? AppColors.textOnBrand
+      : AppColors.neutral0;
 }

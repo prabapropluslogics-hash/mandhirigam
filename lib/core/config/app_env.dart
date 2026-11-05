@@ -9,7 +9,7 @@
 abstract final class AppEnv {
   static const String apiBaseUrl = String.fromEnvironment(
     'API_BASE_URL',
-    defaultValue: 'https://mandhirigam-admin.onrender.com/api/v1',
+    defaultValue: 'https://api.maandhrigam.demosvr.in/api/v1',
   );
 
   /// Optional override for the Google **Web** OAuth client ID (`serverClientId`).

@@ -16,3 +16,45 @@ subprojects {
 tasks.register("clean", Delete) {
     delete rootProject.buildDir
 }
+
+// pdfrx 1.0.84 Android CMake creates a symlink for PDFium (`.lib/latest`).
+// On Windows without Developer Mode that fails with "required privilege".
+// Keep a patched CMakeLists in tool/patches and re-apply before every build.
+def patchPdfrxWindowsCmake() {
+    def patchFile = new File(rootProject.projectDir, "../tool/patches/pdfrx-1.0.84-android-CMakeLists.txt")
+    if (!patchFile.exists()) {
+        logger.warn("pdfrx Windows CMake patch missing: ${patchFile}")
+        return
+    }
+    def pubCache = System.getenv("PUB_CACHE")
+    if (pubCache == null || pubCache.isEmpty()) {
+        pubCache = new File(System.getProperty("user.home"), "AppData/Local/Pub/Cache").absolutePath
+    }
+    def targets = [
+        new File(pubCache, "hosted/pub.dev/pdfrx-1.0.84/android/CMakeLists.txt"),
+    ]
+    // Also cover the Pub cache path Flutter sometimes uses under LOCALAPPDATA.
+    def localAppData = System.getenv("LOCALAPPDATA")
+    if (localAppData != null) {
+        targets << new File(localAppData, "Pub/Cache/hosted/pub.dev/pdfrx-1.0.84/android/CMakeLists.txt")
+    }
+    targets.unique().each { File cmake ->
+        if (!cmake.exists()) return
+        def current = cmake.getText("UTF-8")
+        if (current.contains("PDFium symlink unavailable; copying libs to .lib/latest")) {
+            return
+        }
+        cmake.setText(patchFile.getText("UTF-8"), "UTF-8")
+        logger.lifecycle("Applied Windows-safe pdfrx CMake patch to ${cmake}")
+        // Clear a broken leftover symlink/junction from a prior failed configure.
+        def latest = new File(cmake.parentFile, ".lib/latest")
+        if (latest.exists()) {
+            latest.deleteDir()
+            latest.delete()
+        }
+    }
+}
+
+gradle.projectsLoaded {
+    patchPdfrxWindowsCmake()
+}

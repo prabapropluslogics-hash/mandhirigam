@@ -113,7 +113,7 @@ void main() {
         ],
       },
     });
-    expect(chapter.content.blocks.single.id, 'blk_1');
+    expect(chapter.content!.blocks.single.id, 'blk_1');
 
     final AppConfig config = AppConfig.fromJson(<String, dynamic>{
       'branding': <String, dynamic>{'appName': 'Mantirigam', 'primaryColor': '#6B21A8'},
