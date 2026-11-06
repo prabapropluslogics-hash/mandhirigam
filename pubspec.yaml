@@ -42,6 +42,7 @@ flutter:
     - assets/images/
     - assets/images/covers/
     - assets/icons/
-    # TEMP Phase 1.2 transparency verification only — revert after Android QA.
+    # TEMP Phase 1.2 / 2.1 transparency verification only — revert after Android QA.
     - assets/debug/phase1_1-five-pages-transparent.pdf
+    - assets/debug/phase2-all-33-transparent.pdf
 
