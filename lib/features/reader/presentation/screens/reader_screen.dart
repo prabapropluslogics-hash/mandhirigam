@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -23,6 +25,7 @@ import '../../../../services/share_service.dart';
 import '../../../auth/presentation/require_sign_in.dart';
 import '../../../book_details/presentation/screens/book_details_screen.dart';
 import '../../../payment/presentation/payment_flow.dart';
+import '../../data/rich_text_progress_store.dart';
 import '../../state/reader_preferences.dart';
 import '../reader_palette.dart';
 import '../widgets/original_pdf_reader.dart';
@@ -50,6 +53,8 @@ class _ReaderScreenState extends State<ReaderScreen> {
   ApiException? _apiError;
   String? _error;
   final ScrollController _scroll = ScrollController();
+  Timer? _richTextProgressDebounce;
+  bool _richTextResumeApplied = false;
 
   /// Incremented per load so a slow response for a previously selected
   /// chapter never replaces the one the user picked last.
@@ -60,14 +65,57 @@ class _ReaderScreenState extends State<ReaderScreen> {
   void initState() {
     super.initState();
     ScreenSecurity.setSecure(true);
+    _scroll.addListener(_onRichTextScroll);
     WidgetsBinding.instance.addPostFrameCallback((_) => _load());
   }
 
   @override
   void dispose() {
     ScreenSecurity.setSecure(false);
+    _richTextProgressDebounce?.cancel();
+    _scroll.removeListener(_onRichTextScroll);
     _scroll.dispose();
     super.dispose();
+  }
+
+  void _onRichTextScroll() {
+    final ChapterContent? chapter = _chapter;
+    if (chapter == null || chapter.isOriginalPdf || !_scroll.hasClients) {
+      return;
+    }
+    _richTextProgressDebounce?.cancel();
+    _richTextProgressDebounce = Timer(const Duration(milliseconds: 450), () {
+      _persistRichTextOffset(chapter);
+    });
+  }
+
+  Future<void> _persistRichTextOffset(ChapterContent chapter) async {
+    if (!mounted || !_scroll.hasClients) return;
+    final double max = _scroll.position.maxScrollExtent;
+    final double fraction = max <= 0 ? 0 : (_scroll.offset / max).clamp(0.0, 1.0);
+    final RichTextProgressStore store =
+        context.read<AppContainer>().richTextProgressStore;
+    await store.writeOffset(
+      bookId: chapter.bookId,
+      chapterId: chapter.id,
+      fraction: fraction,
+    );
+  }
+
+  Future<void> _restoreRichTextOffset(ChapterContent chapter) async {
+    if (!mounted || chapter.isOriginalPdf || _richTextResumeApplied) return;
+    final RichTextProgressStore store =
+        context.read<AppContainer>().richTextProgressStore;
+    final double? fraction = await store.readOffset(
+      bookId: chapter.bookId,
+      chapterId: chapter.id,
+    );
+    if (!mounted) return;
+    _richTextResumeApplied = true;
+    if (fraction == null || fraction <= 0 || !_scroll.hasClients) return;
+    final double max = _scroll.position.maxScrollExtent;
+    if (max <= 0) return;
+    _scroll.jumpTo((fraction * max).clamp(0.0, max));
   }
 
   static List<ChapterSummary> _sortChapters(List<ChapterSummary> chapters) {
@@ -92,10 +140,18 @@ class _ReaderScreenState extends State<ReaderScreen> {
           .booksRepository
           .chapterContent(widget.args.bookId, chapterId, force: true);
       if (!mounted || generation != _loadGeneration) return;
+      _richTextResumeApplied = false;
       setState(() {
         _chapter = content;
         _loading = false;
       });
+      if (!content.isOriginalPdf) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted && generation == _loadGeneration) {
+            _restoreRichTextOffset(content);
+          }
+        });
+      }
     } on ApiException catch (error) {
       if (!mounted || generation != _loadGeneration) return;
       setState(() {
@@ -126,6 +182,7 @@ class _ReaderScreenState extends State<ReaderScreen> {
     if (chapterId == _chapterId && _chapter?.id == chapterId) return;
     setState(() => _chapterId = chapterId);
     _preferOriginalPdf = false;
+    _richTextResumeApplied = false;
     if (_scroll.hasClients) _scroll.jumpTo(0);
     await _load();
   }

@@ -19,6 +19,7 @@ import '../data/services/razorpay_checkout.dart';
 import '../design_system/theme/app_colors.dart';
 import '../features/home/state/home_language_preference.dart';
 import '../features/reader/data/pdf_progress_store.dart';
+import '../features/reader/data/rich_text_progress_store.dart';
 import '../features/reader/data/transparent_page_session.dart';
 import '../features/reader/state/reader_preferences.dart';
 import '../services/deep_link_service.dart';
@@ -46,6 +47,7 @@ class AppContainer {
     required this.booksRepository,
     required this.chapterMediaLoader,
     required this.pdfProgressStore,
+    required this.richTextProgressStore,
     required this.transparentPageSession,
     required this.localPreferences,
     required this.readerPreferences,
@@ -64,6 +66,7 @@ class AppContainer {
   final BooksRepository booksRepository;
   final ChapterMediaLoader chapterMediaLoader;
   final PdfProgressStore pdfProgressStore;
+  final RichTextProgressStore richTextProgressStore;
   final TransparentPageSession transparentPageSession;
   final LocalPreferences localPreferences;
   final ReaderPreferences readerPreferences;
@@ -103,6 +106,8 @@ class AppContainer {
     final BooksRepository books = BooksRepository(BooksApi(client));
     final ChapterMediaLoader chapterMedia = ChapterMediaLoader(client);
     final PdfProgressStore pdfProgress = PdfProgressStore(preferences);
+    final RichTextProgressStore richTextProgress =
+        RichTextProgressStore(preferences);
     final TransparentPageSession transparentPages = TransparentPageSession();
     return AppContainer(
       apiClient: client,
@@ -126,6 +131,7 @@ class AppContainer {
       booksRepository: books,
       chapterMediaLoader: chapterMedia,
       pdfProgressStore: pdfProgress,
+      richTextProgressStore: richTextProgress,
       transparentPageSession: transparentPages,
       localPreferences: preferences,
       readerPreferences: ReaderPreferences(preferences),

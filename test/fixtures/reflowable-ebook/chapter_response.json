@@ -1,0 +1,120 @@
+{
+  "success": true,
+  "data": {
+    "id": "sample-tantrik-p7",
+    "bookId": "sample-book",
+    "chapterNumber": 1,
+    "title": "தந்திரிகம் — page 7 sample (fixture)",
+    "contentFormat": "RICH_TEXT",
+    "readerMode": "RICH_TEXT",
+    "status": "DRAFT",
+    "content": {
+      "version": 2,
+      "blocks": [
+        {
+          "id": "blk_h1",
+          "type": "heading",
+          "level": 2,
+          "text": "அஜிகாரிவளியம்‌,எந்திர,மந்ஜிர,கந்இர,",
+          "source": {
+            "page": 7,
+            "order": 0
+          }
+        },
+        {
+          "id": "blk_img1",
+          "type": "image",
+          "mediaId": "000000000000000000000001",
+          "url": "/api/v1/media/000000000000000000000001",
+          "alt": "Yantra from Tantrik page 7 (9×9)",
+          "width": 1271,
+          "height": 848,
+          "fit": "contain",
+          "caption": null,
+          "source": {
+            "page": 7,
+            "order": 1
+          },
+          "localAsset": "yantra_page07.png",
+          "checksum": "bb0a41aa823deb5f197e2f831fcdb29af70377521a37b921a6b9fb10b57687bd"
+        },
+        {
+          "id": "blk_2",
+          "type": "paragraph",
+          "text": "அஸ்தர தோஷம்‌ விவக செளயாக்ய எந்இரம்‌",
+          "source": {
+            "page": 7,
+            "order": 2
+          }
+        },
+        {
+          "id": "blk_3",
+          "type": "heading",
+          "level": 3,
+          "presentation": "instruction",
+          "text": "செய்முறை:",
+          "source": {
+            "page": 7,
+            "order": 3
+          }
+        },
+        {
+          "id": "blk_4",
+          "type": "paragraph",
+          "text": "இந்த சக்கரத்தை வெள்ளித்‌ தகட்டில்‌ பஞ்சலோக ஆணியில்‌ எழுதி கந்தக",
+          "source": {
+            "page": 7,
+            "order": 4
+          }
+        },
+        {
+          "id": "blk_5",
+          "type": "paragraph",
+          "text": "எண்ணை பூசி அஞ்சனை கர பொட்டு இட்டு பூஜையில்‌ வைத்து , பிரேம்‌",
+          "source": {
+            "page": 7,
+            "order": 5
+          }
+        },
+        {
+          "id": "blk_6",
+          "type": "paragraph",
+          "text": "செய்து வீடு,தொழில்‌ ஸ்தானங்களில்‌ மாட்டலாம்‌.தன தான்ய",
+          "source": {
+            "page": 7,
+            "order": 6
+          }
+        },
+        {
+          "id": "blk_7",
+          "type": "paragraph",
+          "text": "அபிவிருத்தி, செல்வ வளம்‌, குடும்ப நலம்‌ சகல விதமான £ர்த்திகளும்‌",
+          "source": {
+            "page": 7,
+            "order": 7
+          }
+        },
+        {
+          "id": "blk_8",
+          "type": "paragraph",
+          "text": "உண்டாகும்‌...",
+          "source": {
+            "page": 7,
+            "order": 8
+          }
+        }
+      ]
+    },
+    "reviewNotes": {
+      "ocrMode": "diagram_masked_bands",
+      "diagramCount": 1,
+      "ambiguousCount": 0,
+      "humanVerificationRequired": true,
+      "notes": [
+        "Title OCR still imperfect — verify against source PDF.",
+        "Yantra image is source-page region render; do not OCR its cells into body text.",
+        "ALLOW_RICH_TEXT_V2_PUBLISH remains disabled; draft/preview only."
+      ]
+    }
+  }
+}
