@@ -30,6 +30,7 @@ import '../widgets/reader_chapter_sheet.dart';
 import '../widgets/reader_paper.dart';
 import '../widgets/reader_settings_panel.dart';
 import '../widgets/rich_text_document_view.dart';
+import '../widgets/transparent_png_reader.dart';
 
 class ReaderScreen extends StatefulWidget {
   const ReaderScreen({super.key, required this.args});
@@ -53,6 +54,7 @@ class _ReaderScreenState extends State<ReaderScreen> {
   /// Incremented per load so a slow response for a previously selected
   /// chapter never replaces the one the user picked last.
   int _loadGeneration = 0;
+  bool _preferOriginalPdf = false;
 
   @override
   void initState() {
@@ -123,6 +125,7 @@ class _ReaderScreenState extends State<ReaderScreen> {
   Future<void> _openChapter(String chapterId) async {
     if (chapterId == _chapterId && _chapter?.id == chapterId) return;
     setState(() => _chapterId = chapterId);
+    _preferOriginalPdf = false;
     if (_scroll.hasClients) _scroll.jumpTo(0);
     await _load();
   }
@@ -326,6 +329,26 @@ class _ReaderScreenState extends State<ReaderScreen> {
             foregroundColor: palette.background,
             onPressed: _load,
           ),
+        );
+      }
+      final TransparentReaderDecision decision =
+          decideTransparentReader(chapter);
+      if (decision.rejection != null) {
+        debugPrint(
+          '[png-reader] fallback book=${chapter.bookId} '
+          'chapter=${chapter.id} reason=${decision.rejection}',
+        );
+      }
+      if (decision.usePackage && !_preferOriginalPdf) {
+        return TransparentPngReader(
+          chapter: chapter,
+          package: chapter.transparentPages!,
+          palette: palette,
+          session: context.read<AppContainer>().transparentPageSession,
+          apiClient: context.read<AppContainer>().apiClient,
+          reloadToken: _loadGeneration,
+          onRestricted: _handleRestricted,
+          onOpenOriginalPdf: () => setState(() => _preferOriginalPdf = true),
         );
       }
       return OriginalPdfReader(

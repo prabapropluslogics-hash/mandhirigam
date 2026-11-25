@@ -164,6 +164,132 @@ class ApiClient {
     }
   }
 
+  /// Authenticated bytes for a protected chapter route. The token is sent
+  /// only as a Bearer header. One 401 refresh is attempted, then the new
+  /// token is used once. Error JSON is parsed into [ApiException].
+  Future<ProtectedHttpBody> getProtectedBody(String path) async {
+    if (path.contains('?') || path.contains('#')) {
+      throw const ApiException(
+        statusCode: 400,
+        code: 'MALFORMED_RESPONSE',
+        message: 'This download path is not allowed.',
+      );
+    }
+    final String? token = await readAccessToken?.call();
+    if (token == null || token.isEmpty) {
+      const ApiException error = ApiException(
+        statusCode: 401,
+        code: 'UNAUTHENTICATED',
+        message: 'Sign in required.',
+      );
+      await onUnauthorized?.call(error);
+      throw error;
+    }
+    try {
+      return await _sendProtectedOnce(path, token);
+    } on ApiException catch (error) {
+      if (!error.isUnauthorized) rethrow;
+      final String? fresh = await refreshAccessToken?.call();
+      if (fresh != null && fresh.isNotEmpty && fresh != token) {
+        try {
+          return await _sendProtectedOnce(path, fresh);
+        } on ApiException catch (retryError) {
+          if (retryError.isUnauthorized) await onUnauthorized?.call(retryError);
+          rethrow;
+        }
+      }
+      await onUnauthorized?.call(error);
+      rethrow;
+    }
+  }
+
+  Future<ProtectedHttpBody> _sendProtectedOnce(
+    String path,
+    String token,
+  ) async {
+    try {
+      final Uri uri = AppEnv.resolve(path);
+      if (AppEnv.isDevelopment) {
+        // ignore: avoid_print
+        print('[api] → GET $uri (protected)');
+      }
+      final http.Request request = http.Request('GET', uri);
+      request.headers['Accept'] = 'image/png,application/json';
+      request.headers['Authorization'] = 'Bearer $token';
+      final http.StreamedResponse streamed =
+          await _http.send(request).timeout(_timeout);
+      final http.Response response = await http.Response.fromStream(streamed);
+      if (AppEnv.isDevelopment) {
+        // ignore: avoid_print
+        print(
+          '[api] GET ${uri.path} → ${response.statusCode} '
+          '(${response.headers['content-type'] ?? 'unknown'})',
+        );
+      }
+      return _parseProtected(response);
+    } on TimeoutException {
+      throw const TimeoutApiException();
+    } on SocketException {
+      throw const NetworkException();
+    } on HttpException {
+      throw const NetworkException();
+    } on ApiException {
+      rethrow;
+    } on FormatException {
+      throw const ApiException(
+        statusCode: 0,
+        code: 'MALFORMED_RESPONSE',
+        message: 'Unexpected response from server.',
+      );
+    }
+  }
+
+  ProtectedHttpBody _parseProtected(http.Response response) {
+    final Uint8List body = response.bodyBytes;
+    final bool bodyLooksJson = body.isNotEmpty && body[0] == 0x7B;
+    final String contentType =
+        (response.headers['content-type'] ?? '').toLowerCase();
+    final bool looksJson = contentType.contains('application/json') ||
+        contentType.contains('text/json') ||
+        bodyLooksJson;
+    if (looksJson || response.statusCode >= 400) {
+      if (bodyLooksJson) {
+        final ApiEnvelope envelope = ApiEnvelope.parse(
+          utf8.decode(body, allowMalformed: true),
+          response.statusCode,
+        );
+        envelope.throwIfError(response.statusCode);
+      }
+      throw ApiException(
+        statusCode: response.statusCode,
+        code: response.statusCode == 404
+            ? 'NOT_FOUND'
+            : response.statusCode == 403
+                ? 'FORBIDDEN'
+                : response.statusCode == 401
+                    ? 'UNAUTHENTICATED'
+                    : response.statusCode == 416
+                        ? 'INVALID_RANGE'
+                        : 'INTERNAL_ERROR',
+        message: response.statusCode == 403
+            ? 'You do not have access to this page.'
+            : response.statusCode == 404
+                ? 'This page is no longer available.'
+                : response.statusCode == 401
+                    ? 'Please sign in again to continue.'
+                    : 'Page request failed.',
+      );
+    }
+    final int? advertised =
+        int.tryParse(response.headers['content-length'] ?? '');
+    return ProtectedHttpBody(
+      statusCode: response.statusCode,
+      bytes: body,
+      contentType: response.headers['content-type'],
+      contentLength: advertised,
+    );
+  }
+
   Future<ApiEnvelope> send(
     String method,
     String path, {
@@ -357,8 +483,7 @@ class ApiClient {
         (response.headers['content-type'] ?? '').toLowerCase();
     final Uint8List body = response.bodyBytes;
     // Inspect raw bytes — never decode PDF bodies as UTF-8/JSON strings.
-    final bool bodyLooksJson =
-        body.isNotEmpty && body[0] == 0x7B; // '{'
+    final bool bodyLooksJson = body.isNotEmpty && body[0] == 0x7B; // '{'
     final bool looksJson = contentType.contains('application/json') ||
         contentType.contains('text/json') ||
         bodyLooksJson;
@@ -602,3 +727,19 @@ class ApiClient {
 }
 
 enum AuthMode { none, optional, required }
+
+/// Bytes from an authenticated download, with the headers needed to check
+/// the transparent-page contract. The body is not cached.
+class ProtectedHttpBody {
+  const ProtectedHttpBody({
+    required this.statusCode,
+    required this.bytes,
+    required this.contentType,
+    required this.contentLength,
+  });
+
+  final int statusCode;
+  final Uint8List bytes;
+  final String? contentType;
+  final int? contentLength;
+}

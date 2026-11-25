@@ -1,5 +1,6 @@
 import '../../core/utils/json_map.dart';
 import 'rich_text_document.dart';
+import 'transparent_pages.dart';
 
 /// How a published chapter should be presented in the mobile reader.
 enum ChapterReaderMode {
@@ -149,6 +150,7 @@ class ChapterContent extends ChapterSummary {
     required super.readerMode,
     this.content,
     this.document,
+    this.transparentPages,
   });
 
   /// Rich Text body. Null when [readerMode] is [ChapterReaderMode.originalPdf].
@@ -157,6 +159,10 @@ class ChapterContent extends ChapterSummary {
   /// Present when [readerMode] is [ChapterReaderMode.originalPdf].
   final ChapterDocument? document;
 
+  /// Active transparent package. Null on older payloads and while
+  /// activation is disabled. Never required for [document].
+  final TransparentPagesDocument? transparentPages;
+
   bool get isOriginalPdf => readerMode == ChapterReaderMode.originalPdf;
 
   factory ChapterContent.fromJson(Map<String, dynamic> json) {
@@ -164,6 +170,10 @@ class ChapterContent extends ChapterSummary {
     final Object? rawDocument = json['document'];
     final ChapterDocument? document = rawDocument is Map
         ? ChapterDocument.fromJson(asJsonMap(rawDocument))
+        : null;
+    final Object? rawPages = json['transparentPages'];
+    final TransparentPagesDocument? transparentPages = rawPages is Map
+        ? TransparentPagesDocument.fromJson(asJsonMap(rawPages))
         : null;
 
     RichTextDocument? content;
@@ -188,6 +198,7 @@ class ChapterContent extends ChapterSummary {
       readerMode: mode,
       content: content,
       document: document,
+      transparentPages: transparentPages,
     );
   }
 
@@ -203,4 +214,45 @@ class ChapterContent extends ChapterSummary {
       expectedChapterId: id,
     );
   }
+}
+
+/// How an Original PDF chapter should be opened.
+class TransparentReaderDecision {
+  const TransparentReaderDecision({
+    required this.usePackage,
+    this.rejection,
+  });
+
+  /// True only when metadata is present and valid.
+  final bool usePackage;
+
+  /// Set when metadata was present but rejected. Absent metadata stays null.
+  final String? rejection;
+}
+
+TransparentReaderDecision decideTransparentReader(ChapterContent chapter) {
+  if (!chapter.isOriginalPdf) {
+    return const TransparentReaderDecision(usePackage: false);
+  }
+  final TransparentPagesDocument? package = chapter.transparentPages;
+  if (package == null) {
+    return const TransparentReaderDecision(usePackage: false);
+  }
+  final ChapterDocument? document = chapter.document;
+  if (document == null) {
+    return const TransparentReaderDecision(
+      usePackage: false,
+      rejection: 'Transparent package has no Original PDF to match.',
+    );
+  }
+  final String? rejection = package.validationError(
+    bookId: chapter.bookId,
+    chapterId: chapter.id,
+    documentSha256: document.sha256,
+    documentPageCount: document.pageCount,
+  );
+  if (rejection != null) {
+    return TransparentReaderDecision(usePackage: false, rejection: rejection);
+  }
+  return const TransparentReaderDecision(usePackage: true);
 }

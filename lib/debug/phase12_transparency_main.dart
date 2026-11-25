@@ -2,12 +2,11 @@ import 'package:flutter/material.dart';
 
 import 'phase12_transparency_screen.dart';
 
-/// Temporary Phase 2.1 Android transparency verification entrypoint.
+/// Temporary Phase 2.3 PNG transparency verification entrypoint.
 ///
-/// Loads the 33-page research PDF from
-/// `assets/debug/phase2-all-33-transparent.pdf`.
-/// Remove that asset and its pubspec.yaml entry after QA, along with any
-/// harness edits that should not ship.
+/// Shows the 33 packed page PNGs from `assets/debug/phase2_png/`.
+/// PDFium is not used. Remove that asset directory, its pubspec.yaml entry,
+/// and this harness after QA.
 ///
 /// Run (debug only, on your machine):
 /// ```
@@ -27,7 +26,7 @@ class Phase12TransparencyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: true,
-      title: 'Phase 2.1 PDF Transparency',
+      title: 'Phase 2.3 PNG pages',
       theme: ThemeData(
         brightness: Brightness.dark,
         colorSchemeSeed: const Color(0xFF7E5A28),

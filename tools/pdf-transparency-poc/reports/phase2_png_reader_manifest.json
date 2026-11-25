@@ -1,0 +1,341 @@
+{
+  "description": "Temporary Phase 2.3 debug assets. Copies of packed.png, the RGBA images inserted into phase2-all-33-transparent.pdf. Remove after QA.",
+  "page_count": 33,
+  "width": 1241,
+  "height": 1754,
+  "total_bytes": 11911325,
+  "fingerprint_sha256": "d60972fe641e5bd598ba1dde0d2e1e740d76819c22338450835bb4af2e9d11f2",
+  "source_note": "packed.png equals rgba.png on alpha and on RGB where alpha > 0. Transparent pixels are stored as RGB 0. Checker, parchment, original, alpha-only, and contact-sheet images were not copied.",
+  "pages": [
+    {
+      "page": 1,
+      "source": "tools/pdf-transparency-poc/output/phase2_all_33/page_01/packed.png",
+      "asset": "assets/debug/phase2_png/page_01.png",
+      "filename": "page_01.png",
+      "width": 1241,
+      "height": 1754,
+      "bytes": 344035,
+      "sha256": "277a21910f4e4547cafa1f294b9b27370e0897b9236b874a4005d8201b7b06b4"
+    },
+    {
+      "page": 2,
+      "source": "tools/pdf-transparency-poc/output/phase2_all_33/page_02/packed.png",
+      "asset": "assets/debug/phase2_png/page_02.png",
+      "filename": "page_02.png",
+      "width": 1241,
+      "height": 1754,
+      "bytes": 334897,
+      "sha256": "c991deda711f4ca4829ec9ba224e0e9144e2a3e058918bb72cc53fd28d94e2a3"
+    },
+    {
+      "page": 3,
+      "source": "tools/pdf-transparency-poc/output/phase2_all_33/page_03/packed.png",
+      "asset": "assets/debug/phase2_png/page_03.png",
+      "filename": "page_03.png",
+      "width": 1241,
+      "height": 1754,
+      "bytes": 357885,
+      "sha256": "f441d2182f928118597b9b3409e742faa414847e85e8a3782fcce30c1677c550"
+    },
+    {
+      "page": 4,
+      "source": "tools/pdf-transparency-poc/output/phase2_all_33/page_04/packed.png",
+      "asset": "assets/debug/phase2_png/page_04.png",
+      "filename": "page_04.png",
+      "width": 1241,
+      "height": 1754,
+      "bytes": 347985,
+      "sha256": "c172934ffcce81991185696b2b4fdc53c77e2e4d550b61b5685d8a80c415acaf"
+    },
+    {
+      "page": 5,
+      "source": "tools/pdf-transparency-poc/output/phase2_all_33/page_05/packed.png",
+      "asset": "assets/debug/phase2_png/page_05.png",
+      "filename": "page_05.png",
+      "width": 1241,
+      "height": 1754,
+      "bytes": 360441,
+      "sha256": "7652fdfb383d6cf37d4560d8601c45df88eb66af736d60ca8bc64e52f278f031"
+    },
+    {
+      "page": 6,
+      "source": "tools/pdf-transparency-poc/output/phase2_all_33/page_06/packed.png",
+      "asset": "assets/debug/phase2_png/page_06.png",
+      "filename": "page_06.png",
+      "width": 1241,
+      "height": 1754,
+      "bytes": 384063,
+      "sha256": "248123d4cad97bb8741d128516023cca4801d258acaf4b11230e08803a23af30"
+    },
+    {
+      "page": 7,
+      "source": "tools/pdf-transparency-poc/output/phase2_all_33/page_07/packed.png",
+      "asset": "assets/debug/phase2_png/page_07.png",
+      "filename": "page_07.png",
+      "width": 1241,
+      "height": 1754,
+      "bytes": 559660,
+      "sha256": "7cd9964f3962c598d4103b96dd06d269dc664f225a586410944c98824e5984c0"
+    },
+    {
+      "page": 8,
+      "source": "tools/pdf-transparency-poc/output/phase2_all_33/page_08/packed.png",
+      "asset": "assets/debug/phase2_png/page_08.png",
+      "filename": "page_08.png",
+      "width": 1241,
+      "height": 1754,
+      "bytes": 290958,
+      "sha256": "1a11373318d3beb983caa9b522a001c625788b9c02e891fb2ce34b9ba64a9430"
+    },
+    {
+      "page": 9,
+      "source": "tools/pdf-transparency-poc/output/phase2_all_33/page_09/packed.png",
+      "asset": "assets/debug/phase2_png/page_09.png",
+      "filename": "page_09.png",
+      "width": 1241,
+      "height": 1754,
+      "bytes": 301710,
+      "sha256": "b08b303ad5c22518bea66ef8058e35cc2398174abfba7c6eacf20d0072263cc0"
+    },
+    {
+      "page": 10,
+      "source": "tools/pdf-transparency-poc/output/phase2_all_33/page_10/packed.png",
+      "asset": "assets/debug/phase2_png/page_10.png",
+      "filename": "page_10.png",
+      "width": 1241,
+      "height": 1754,
+      "bytes": 408144,
+      "sha256": "5259bf601aa769144701c4f6690618c11df240f197ef4294e962dd541a399191"
+    },
+    {
+      "page": 11,
+      "source": "tools/pdf-transparency-poc/output/phase2_all_33/page_11/packed.png",
+      "asset": "assets/debug/phase2_png/page_11.png",
+      "filename": "page_11.png",
+      "width": 1241,
+      "height": 1754,
+      "bytes": 450599,
+      "sha256": "b57f8c284d19c9912c1ceacfcf419de5c5acbcb867bfdae8a2211ad79a3b75e9"
+    },
+    {
+      "page": 12,
+      "source": "tools/pdf-transparency-poc/output/phase2_all_33/page_12/packed.png",
+      "asset": "assets/debug/phase2_png/page_12.png",
+      "filename": "page_12.png",
+      "width": 1241,
+      "height": 1754,
+      "bytes": 343694,
+      "sha256": "7167712c33ab7b02f1a9291d6425af8c6065dfc4edbf5b5c61e8ec6ba4cc43d7"
+    },
+    {
+      "page": 13,
+      "source": "tools/pdf-transparency-poc/output/phase2_all_33/page_13/packed.png",
+      "asset": "assets/debug/phase2_png/page_13.png",
+      "filename": "page_13.png",
+      "width": 1241,
+      "height": 1754,
+      "bytes": 466255,
+      "sha256": "437e9bb46575b3c71e4ebb5a3c1d72f82238b4c38632486fcbc31a6465bc6544"
+    },
+    {
+      "page": 14,
+      "source": "tools/pdf-transparency-poc/output/phase2_all_33/page_14/packed.png",
+      "asset": "assets/debug/phase2_png/page_14.png",
+      "filename": "page_14.png",
+      "width": 1241,
+      "height": 1754,
+      "bytes": 373308,
+      "sha256": "55ad281e5dfc87b5a2a078b62abb20c8f89cca7882bd836689c7c7c1300e5ddb"
+    },
+    {
+      "page": 15,
+      "source": "tools/pdf-transparency-poc/output/phase2_all_33/page_15/packed.png",
+      "asset": "assets/debug/phase2_png/page_15.png",
+      "filename": "page_15.png",
+      "width": 1241,
+      "height": 1754,
+      "bytes": 375613,
+      "sha256": "69329fafcf2f1ec33d3c90127be32c7613aee8b741545d89d153f8c921e19cc0"
+    },
+    {
+      "page": 16,
+      "source": "tools/pdf-transparency-poc/output/phase2_all_33/page_16/packed.png",
+      "asset": "assets/debug/phase2_png/page_16.png",
+      "filename": "page_16.png",
+      "width": 1241,
+      "height": 1754,
+      "bytes": 283401,
+      "sha256": "0d0e777bb58b728eb408d3875d24fa8f0bab107feee61d4604048f056b03461f"
+    },
+    {
+      "page": 17,
+      "source": "tools/pdf-transparency-poc/output/phase2_all_33/page_17/packed.png",
+      "asset": "assets/debug/phase2_png/page_17.png",
+      "filename": "page_17.png",
+      "width": 1241,
+      "height": 1754,
+      "bytes": 411302,
+      "sha256": "dc2e07724e0abd5be194db0c3fecd0b93b1a5f270a943ec0c6ccb5441075791f"
+    },
+    {
+      "page": 18,
+      "source": "tools/pdf-transparency-poc/output/phase2_all_33/page_18/packed.png",
+      "asset": "assets/debug/phase2_png/page_18.png",
+      "filename": "page_18.png",
+      "width": 1241,
+      "height": 1754,
+      "bytes": 298529,
+      "sha256": "79c681a17330daf146836ace89514fc6a8c3156ce75579b05e904cb9582804b0"
+    },
+    {
+      "page": 19,
+      "source": "tools/pdf-transparency-poc/output/phase2_all_33/page_19/packed.png",
+      "asset": "assets/debug/phase2_png/page_19.png",
+      "filename": "page_19.png",
+      "width": 1241,
+      "height": 1754,
+      "bytes": 347678,
+      "sha256": "f046c9950c6dc02e699d5344decd04092dfee6c48065d0454d8f15313d05cf2d"
+    },
+    {
+      "page": 20,
+      "source": "tools/pdf-transparency-poc/output/phase2_all_33/page_20/packed.png",
+      "asset": "assets/debug/phase2_png/page_20.png",
+      "filename": "page_20.png",
+      "width": 1241,
+      "height": 1754,
+      "bytes": 313837,
+      "sha256": "c3b7eac0569463f8513f7a10daae295a4c75860e1fea8b110b3b44fcc84b80cc"
+    },
+    {
+      "page": 21,
+      "source": "tools/pdf-transparency-poc/output/phase2_all_33/page_21/packed.png",
+      "asset": "assets/debug/phase2_png/page_21.png",
+      "filename": "page_21.png",
+      "width": 1241,
+      "height": 1754,
+      "bytes": 341189,
+      "sha256": "5b6e3f68cdabaeda9b7004a53b718f1c0ac138fd43673038ccd29f21b69bf119"
+    },
+    {
+      "page": 22,
+      "source": "tools/pdf-transparency-poc/output/phase2_all_33/page_22/packed.png",
+      "asset": "assets/debug/phase2_png/page_22.png",
+      "filename": "page_22.png",
+      "width": 1241,
+      "height": 1754,
+      "bytes": 338133,
+      "sha256": "b68f3179ffd0a77dcc49a35dd7d7ca5c21b4b31963cf2dfa94773e4308d726a3"
+    },
+    {
+      "page": 23,
+      "source": "tools/pdf-transparency-poc/output/phase2_all_33/page_23/packed.png",
+      "asset": "assets/debug/phase2_png/page_23.png",
+      "filename": "page_23.png",
+      "width": 1241,
+      "height": 1754,
+      "bytes": 472504,
+      "sha256": "0bafcc1093e1baedecde7b6e3085e69b39b0842c8b2f89735dde3e86752b130c"
+    },
+    {
+      "page": 24,
+      "source": "tools/pdf-transparency-poc/output/phase2_all_33/page_24/packed.png",
+      "asset": "assets/debug/phase2_png/page_24.png",
+      "filename": "page_24.png",
+      "width": 1241,
+      "height": 1754,
+      "bytes": 310270,
+      "sha256": "dddcd6110eced68a3c2b1c15cb77de0ee27ebd66027e3d533b5e42207a62cebe"
+    },
+    {
+      "page": 25,
+      "source": "tools/pdf-transparency-poc/output/phase2_all_33/page_25/packed.png",
+      "asset": "assets/debug/phase2_png/page_25.png",
+      "filename": "page_25.png",
+      "width": 1241,
+      "height": 1754,
+      "bytes": 368619,
+      "sha256": "14d947c5b885b3e606df757be88499c8783d3908ae66e7adb45538a452361787"
+    },
+    {
+      "page": 26,
+      "source": "tools/pdf-transparency-poc/output/phase2_all_33/page_26/packed.png",
+      "asset": "assets/debug/phase2_png/page_26.png",
+      "filename": "page_26.png",
+      "width": 1241,
+      "height": 1754,
+      "bytes": 352558,
+      "sha256": "079a499327d8a25525c8125a2ba8f508a43debea8ef67dfc91ef4ea2244a8fa2"
+    },
+    {
+      "page": 27,
+      "source": "tools/pdf-transparency-poc/output/phase2_all_33/page_27/packed.png",
+      "asset": "assets/debug/phase2_png/page_27.png",
+      "filename": "page_27.png",
+      "width": 1241,
+      "height": 1754,
+      "bytes": 323522,
+      "sha256": "68525dc5f0c3926b8e0880b02d15389d5787e843f52680f3fdf2b30fcd154761"
+    },
+    {
+      "page": 28,
+      "source": "tools/pdf-transparency-poc/output/phase2_all_33/page_28/packed.png",
+      "asset": "assets/debug/phase2_png/page_28.png",
+      "filename": "page_28.png",
+      "width": 1241,
+      "height": 1754,
+      "bytes": 396193,
+      "sha256": "6d67b9fe8e6717ff7f1451fdc8029dd71fc2ebaafa1137356612339ce11d1d2b"
+    },
+    {
+      "page": 29,
+      "source": "tools/pdf-transparency-poc/output/phase2_all_33/page_29/packed.png",
+      "asset": "assets/debug/phase2_png/page_29.png",
+      "filename": "page_29.png",
+      "width": 1241,
+      "height": 1754,
+      "bytes": 359838,
+      "sha256": "64771c100b4bcf164c45636d32034b5ed79bd137313b6d8decd45ec5096b6fcb"
+    },
+    {
+      "page": 30,
+      "source": "tools/pdf-transparency-poc/output/phase2_all_33/page_30/packed.png",
+      "asset": "assets/debug/phase2_png/page_30.png",
+      "filename": "page_30.png",
+      "width": 1241,
+      "height": 1754,
+      "bytes": 273275,
+      "sha256": "b83fb18402d9b8fe984b718bea0bfc1f21bb0a62b168baa5bde413044f85d9ab"
+    },
+    {
+      "page": 31,
+      "source": "tools/pdf-transparency-poc/output/phase2_all_33/page_31/packed.png",
+      "asset": "assets/debug/phase2_png/page_31.png",
+      "filename": "page_31.png",
+      "width": 1241,
+      "height": 1754,
+      "bytes": 337120,
+      "sha256": "362fa5d9321cd2f4c3897fda29339a823ffa92d6cae72d5ac24db818e33117d8"
+    },
+    {
+      "page": 32,
+      "source": "tools/pdf-transparency-poc/output/phase2_all_33/page_32/packed.png",
+      "asset": "assets/debug/phase2_png/page_32.png",
+      "filename": "page_32.png",
+      "width": 1241,
+      "height": 1754,
+      "bytes": 305339,
+      "sha256": "2c3b3fb68db7ac2379e7bea3ecd4d978afb88bdf6a146a293ecf630ee054e043"
+    },
+    {
+      "page": 33,
+      "source": "tools/pdf-transparency-poc/output/phase2_all_33/page_33/packed.png",
+      "asset": "assets/debug/phase2_png/page_33.png",
+      "filename": "page_33.png",
+      "width": 1241,
+      "height": 1754,
+      "bytes": 378771,
+      "sha256": "0277c868169bd3af78b986a84c63e9d211d743a0fb61ea82b0d05b430b18af14"
+    }
+  ]
+}

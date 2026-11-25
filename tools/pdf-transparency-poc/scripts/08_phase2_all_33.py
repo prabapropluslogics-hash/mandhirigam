@@ -31,8 +31,29 @@ OUT = ROOT / "output" / "phase2_all_33"
 PHASE131 = ROOT / "output" / "phase1_3_1"
 REPORT_MD = ROOT / "reports" / "phase2_all_33_report.md"
 REPORT_HTML = ROOT / "reports" / "phase2_comparison.html"
+INPUT_PDF = ROOT / "input" / "original.pdf"
 EXPECTED_SHA = "d9d6ebfaea32e221e9a4465980e4cd7feaee8a45dd186d3e8001eb1199d95231"
 REGRESSION_PAGES = (1, 7, 25, 33, 13)
+
+
+def configure_paths(
+    *,
+    input_pdf: Path | None = None,
+    output_dir: Path | None = None,
+    report_dir: Path | None = None,
+) -> None:
+    """Redirect I/O for an isolated run. Algorithm code is unchanged."""
+    global INPUT_PDF, OUT, REPORT_MD, REPORT_HTML
+    if input_pdf is not None:
+        INPUT_PDF = input_pdf
+    if output_dir is not None:
+        OUT = output_dir
+    if report_dir is not None:
+        REPORT_MD = report_dir / "phase2_all_33_report.md"
+        REPORT_HTML = report_dir / "phase2_comparison.html"
+    elif output_dir is not None:
+        REPORT_MD = output_dir / "phase2_all_33_report.md"
+        REPORT_HTML = output_dir / "phase2_comparison.html"
 
 
 class PROCESS_MEMORY_COUNTERS(ctypes.Structure):
@@ -51,12 +72,18 @@ class PROCESS_MEMORY_COUNTERS(ctypes.Structure):
 
 
 def working_set() -> tuple[int, int]:
-    counters = PROCESS_MEMORY_COUNTERS()
-    counters.cb = ctypes.sizeof(counters)
-    ctypes.windll.psapi.GetProcessMemoryInfo(
-        ctypes.windll.kernel32.GetCurrentProcess(), ctypes.byref(counters), counters.cb
-    )
-    return int(counters.WorkingSetSize), int(counters.PeakWorkingSetSize)
+    # Historical Windows helper. Non-Windows hosts return zeros.
+    try:
+        counters = PROCESS_MEMORY_COUNTERS()
+        counters.cb = ctypes.sizeof(counters)
+        ctypes.windll.psapi.GetProcessMemoryInfo(
+            ctypes.windll.kernel32.GetCurrentProcess(),
+            ctypes.byref(counters),
+            counters.cb,
+        )
+        return int(counters.WorkingSetSize), int(counters.PeakWorkingSetSize)
+    except Exception:  # noqa: BLE001
+        return 0, 0
 
 
 def sha256(path: Path) -> str:
@@ -424,10 +451,11 @@ def verify_pdf(path: Path, page_numbers: list[int]) -> dict:
         if has:
             smask += 1
         if index < len(page_numbers):
-            src = fitz.open(ROOT / "input" / "original.pdf")[page_numbers[index] - 1]
+            src_doc = fitz.open(INPUT_PDF)
+            src = src_doc[page_numbers[index] - 1]
             if abs(page.rect.width - src.rect.width) > 0.1 or abs(page.rect.height - src.rect.height) > 0.1:
                 order_ok = False
-            src.parent.close()
+            src_doc.close()
     doc.close()
     return {
         "independent_parser": independent,
@@ -558,7 +586,11 @@ def write_html(summary: dict) -> None:
     ]
     for page in summary["pages"]:
         n = f"{page['original_page']:02d}"
-        base = f"../output/phase2_all_33/page_{n}"
+        try:
+            rel = Path(OUT / f"page_{n}").resolve().relative_to(REPORT_HTML.parent.resolve())
+            base = rel.as_posix()
+        except ValueError:
+            base = (OUT / f"page_{n}").resolve().as_uri()
         zoom = f"<div><a href='{base}/zoom_400.png'>400%</a></div>" if page.get("dense_closeup") else ""
         notes = "<br>".join(html.escape(note) for note in page["notes"])
         parts.append(
@@ -578,12 +610,40 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--pages", nargs="*", type=int)
     parser.add_argument("--no-pack", action="store_true")
+    parser.add_argument(
+        "--input",
+        type=Path,
+        help="Source PDF path. Defaults to tools/.../input/original.pdf",
+    )
+    parser.add_argument(
+        "--output",
+        type=Path,
+        help="Isolated output directory. Defaults to output/phase2_all_33/",
+    )
+    parser.add_argument(
+        "--report-dir",
+        type=Path,
+        help="Directory for markdown/HTML reports. Defaults beside --output.",
+    )
     args = parser.parse_args()
-    source = ROOT / "input" / "original.pdf"
+    configure_paths(
+        input_pdf=args.input.resolve() if args.input else None,
+        output_dir=args.output.resolve() if args.output else None,
+        report_dir=args.report_dir.resolve() if args.report_dir else None,
+    )
+    source = INPUT_PDF
     digest = sha256(source)
     if digest != EXPECTED_SHA:
         raise SystemExit(f"original SHA mismatch: {digest}")
+    # Never write into the caller's historical tree when --output is set.
+    if args.output is not None:
+        historical = (ROOT / "output" / "phase2_all_33").resolve()
+        if OUT.resolve() == historical:
+            raise SystemExit("refusing to overwrite the historical phase2_all_33 directory")
+    OUT.mkdir(parents=True, exist_ok=True)
+    REPORT_MD.parent.mkdir(parents=True, exist_ok=True)
     module = load_phase13()
+    module.INPUT_PDF = INPUT_PDF
     page_numbers = args.pages or list(range(1, 34))
     tracemalloc.start()
     summary = process_pages(module, page_numbers)

@@ -65,6 +65,8 @@ class _MaanthirigamAppState extends State<MaanthirigamApp> {
       // Scope PDF progress to the active account; clear disk leftovers.
       widget.container.pdfProgressStore
           .bindUser(auth.isAuthenticated ? auth.user?.id : null);
+      widget.container.transparentPageSession
+          .bindUser(auth.isAuthenticated ? auth.user?.id : null);
       if (!auth.isAuthenticated) {
         widget.container.pdfProgressStore.clearCurrentUser();
         PdfTempCleanup.clearAll();

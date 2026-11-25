@@ -1,31 +1,26 @@
-import 'dart:async';
 import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:pdfrx/pdfrx.dart';
 
-import 'phase21_render_gate.dart';
 import '../features/reader/presentation/reader_palette.dart';
 import '../features/reader/presentation/widgets/reader_paper.dart';
 import '../features/reader/state/reader_preferences.dart';
+import 'phase23_png_catalog.dart';
+import 'phase23_png_pages.dart';
 
-/// Debug-only screen for the Phase 2 33-page transparent PDF.
+/// Debug-only reader for the 33 Phase 2 transparent PNGs.
 ///
-/// Uses production `pdfrx` 1.0.84 [PdfPage.render] with
-/// [Colors.transparent] so soft-mask alpha composites onto the Flutter
-/// background. Pages render when they enter the scroll cache and their
-/// bitmaps are disposed when they leave it. Renders are serialized, and
-/// each page is clipped to its own slot so one page cannot paint over the next.
+/// Page pixels come from `assets/debug/phase2_png/page_XX.png`, which are
+/// copies of `packed.png`. PDFium is not opened and no page is rendered
+/// from a PDF. Remove this screen, the PNG assets, and the pubspec entry
+/// after QA.
 class Phase12TransparencyScreen extends StatefulWidget {
   const Phase12TransparencyScreen({super.key});
 
-  static const String assetPath = 'assets/debug/phase2-all-33-transparent.pdf';
+  static const int expectedPages = Phase23Pages.pageCount;
 
-  static const int expectedBytes = 11735347;
-  static const int expectedPages = 33;
-
-  /// Pages called out for close inspection. PDF order matches the source.
+  /// Pages called out for close inspection. Order matches the source PDF.
   static const List<int> focusPages = <int>[1, 7, 13, 16, 19, 25, 33];
 
   @override
@@ -39,122 +34,95 @@ class _Phase12TransparencyScreenState extends State<Phase12TransparencyScreen> {
   static const double _labelHeight = 20;
   static const double _labelGap = 6;
   static const double _pageGap = 18;
-  static const double _dpiScale = 150 / 72;
+  static const double _controlCanvasHeight = 180;
 
   final ScrollController _scroll = ScrollController();
-  final Phase21RenderGate _renderGate = Phase21RenderGate();
-  final Map<int, int> _renderMs = <int, int>{};
+  late final Phase23LoadCoordinator<ui.Image> _pages =
+      Phase23LoadCoordinator<ui.Image>(
+    maxReady: 5,
+    decode: _decodePage,
+    release: (ui.Image image) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => image.dispose());
+    },
+    onChanged: () {
+      if (mounted) setState(() {});
+    },
+  );
 
-  PdfDocument? _document;
   _BgMode _bg = _BgMode.parchment;
-  bool _loading = true;
-  String? _error;
-  String _nativeNote = 'pdfrx 1.0.84 / waiting for Android PDFium load';
-  int _loadMs = 0;
   double _zoom = 1;
   int _visiblePage = 1;
+
+  double get _controlSlot => _labelHeight + _labelGap + _controlCanvasHeight;
 
   @override
   void initState() {
     super.initState();
     _scroll.addListener(_onScroll);
-    _open();
   }
 
   @override
   void dispose() {
     _scroll.removeListener(_onScroll);
-    _document?.dispose();
+    _pages.close();
     _scroll.dispose();
     super.dispose();
   }
 
   void _onScroll() {
-    if (_document == null || !mounted) return;
-    final double width = MediaQuery.sizeOf(context).width - 24;
-    final int page = _pageAt(_scroll.offset, width);
-    if (page != _visiblePage) setState(() => _visiblePage = page);
+    if (!mounted) return;
+    final int page = _pageAt(_scroll.offset, _pageWidth(context));
+    if (page == _visiblePage) return;
+    _pages.setVisible(page);
+    setState(() => _visiblePage = page);
   }
 
-  Future<void> _open() async {
-    setState(() {
-      _loading = true;
-      _error = null;
-      _nativeNote = 'Loading PDF bytes + opening with pdfrx PDFium…';
-    });
-    final Stopwatch watch = Stopwatch()..start();
+  Future<ui.Image> _decodePage(int page) async {
+    final ByteData data = await rootBundle.load(Phase23Pages.assetFor(page));
+    final Uint8List bytes = data.buffer.asUint8List();
+    final ui.Codec codec = await ui.instantiateImageCodec(bytes);
     try {
-      final ByteData data =
-          await rootBundle.load(Phase12TransparencyScreen.assetPath);
-      final Uint8List bytes = data.buffer.asUint8List();
-      if (bytes.length != Phase12TransparencyScreen.expectedBytes) {
-        throw StateError(
-          'PDF size ${bytes.length} != ${Phase12TransparencyScreen.expectedBytes}',
-        );
+      final ui.FrameInfo frame = await codec.getNextFrame();
+      final ui.Image image = frame.image;
+      if (image.width != Phase23Pages.width ||
+          image.height != Phase23Pages.height) {
+        final int width = image.width;
+        final int height = image.height;
+        image.dispose();
+        throw StateError('page $page decoded as ${width}x$height');
       }
-      final PdfDocument document = await PdfDocument.openData(
-        bytes,
-        sourceName: 'phase2-all-33-transparent.pdf',
-      );
-      watch.stop();
-      if (document.pages.length != Phase12TransparencyScreen.expectedPages) {
-        await document.dispose();
-        throw StateError(
-          'page count ${document.pages.length} != 33',
-        );
-      }
-      debugPrint(
-        '[phase21] opened pages=${document.pages.length} '
-        'loadMs=${watch.elapsedMilliseconds} bytes=${bytes.length}',
-      );
-      if (!mounted) {
-        await document.dispose();
-        return;
-      }
-      setState(() {
-        _document = document;
-        _loadMs = watch.elapsedMilliseconds;
-        _loading = false;
-        _nativeNote =
-            'pdfrx 1.0.84 PDFium OK — 33 pages, soft-mask bg=transparent, lazy render';
-      });
-    } catch (error, stack) {
-      watch.stop();
-      debugPrint('[phase21] ERROR $error\n$stack');
-      if (!mounted) return;
-      setState(() {
-        _loading = false;
-        _error = error.toString();
-        _nativeNote = 'PDFium open FAILED: $error';
-      });
+      return image;
+    } finally {
+      codec.dispose();
     }
   }
 
   double _pageWidth(BuildContext context) =>
       MediaQuery.sizeOf(context).width - 24;
 
-  double _blockHeight(int index, double pageWidth) {
-    final PdfPage page = _document!.pages[index];
-    final double height = pageWidth * (page.height / page.width);
-    return _labelHeight + _labelGap + height;
-  }
+  double _pageHeight(double pageWidth) =>
+      pageWidth * (Phase23Pages.height / Phase23Pages.width);
 
-  double _offsetFor(int index, double pageWidth) {
-    double y = 0;
-    for (int i = 0; i < index; i++) {
-      y += _blockHeight(i, pageWidth) + _pageGap;
+  double _blockHeight(double pageWidth) =>
+      _labelHeight + _labelGap + _pageHeight(pageWidth);
+
+  double _offsetFor(int pageNumber, double pageWidth) {
+    double y = _controlSlot + _pageGap;
+    for (int page = 1; page < pageNumber; page++) {
+      y += _blockHeight(pageWidth) + _pageGap;
     }
     return y;
   }
 
   int _pageAt(double offset, double pageWidth) {
-    double y = 0;
-    for (int i = 0; i < _document!.pages.length; i++) {
-      final double next = y + _blockHeight(i, pageWidth) + _pageGap;
-      if (offset < next - 8) return i + 1;
+    double y = _controlSlot + _pageGap;
+    if (offset < y - 8) return 1;
+    for (int page = 1; page <= Phase23Pages.pageCount; page++) {
+      final double next = y + _blockHeight(pageWidth) + _pageGap;
+      if (offset < next - 8) return page;
       y = next;
     }
-    return _document!.pages.length;
+    return Phase23Pages.pageCount;
   }
 
   void _setZoom(double factor) {
@@ -162,20 +130,14 @@ class _Phase12TransparencyScreenState extends State<Phase12TransparencyScreen> {
   }
 
   void _jumpToPage(int pageNumber) {
-    if (_document == null || !_scroll.hasClients) return;
-    final int index = pageNumber - 1;
-    if (index < 0 || index >= _document!.pages.length) return;
+    if (!_scroll.hasClients) return;
+    if (pageNumber < 1 || pageNumber > Phase23Pages.pageCount) return;
     final double width = _pageWidth(context);
-    final double target = _offsetFor(index, width);
+    final double target = _offsetFor(pageNumber, width);
     final double max = _scroll.position.maxScrollExtent;
     _scroll.jumpTo(target.clamp(0, max));
+    _pages.setVisible(pageNumber);
     setState(() => _visiblePage = pageNumber);
-  }
-
-  void _noteRender(int pageNumber, int ms) {
-    _renderMs[pageNumber] = ms;
-    debugPrint('[phase21] page $pageNumber renderMs=$ms');
-    if (mounted) setState(() {});
   }
 
   @override
@@ -183,8 +145,8 @@ class _Phase12TransparencyScreenState extends State<Phase12TransparencyScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFF0D0D0D),
       appBar: AppBar(
-        title: const Text('Phase 2.1 Transparency'),
-        actions: [
+        title: const Text('Phase 2.3 PNG pages'),
+        actions: <Widget>[
           IconButton(
             tooltip: 'zoom-100',
             onPressed: () => _setZoom(1),
@@ -203,29 +165,26 @@ class _Phase12TransparencyScreenState extends State<Phase12TransparencyScreen> {
         ],
       ),
       body: Column(
-        children: [
+        children: <Widget>[
           _BgSelector(
             value: _bg,
             onChanged: (_BgMode mode) => setState(() => _bg = mode),
           ),
-          if (!_loading && _error == null) ...[
-            _FocusJumpBar(onJump: _jumpToPage),
-            _PageJumpBar(onJump: _jumpToPage),
-            if (_pageHint() != null)
-              Padding(
-                padding: const EdgeInsets.fromLTRB(12, 4, 12, 0),
-                child: Text(
-                  _pageHint()!,
-                  style:
-                      const TextStyle(fontSize: 12, color: Color(0xFFE6DAC2)),
-                ),
+          _FocusJumpBar(onJump: _jumpToPage),
+          _PageJumpBar(onJump: _jumpToPage),
+          if (_pageHint() != null)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(12, 4, 12, 0),
+              child: Text(
+                _pageHint()!,
+                style: const TextStyle(fontSize: 12, color: Color(0xFFE6DAC2)),
               ),
-          ],
+            ),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             child: Text(
               _statusLine(),
-              maxLines: 3,
+              maxLines: 4,
               overflow: TextOverflow.ellipsis,
               style: const TextStyle(fontSize: 12, color: Color(0xFFE6DAC2)),
             ),
@@ -248,53 +207,39 @@ class _Phase12TransparencyScreenState extends State<Phase12TransparencyScreen> {
   }
 
   String _statusLine() {
-    if (_loading || _error != null) return _nativeNote;
-    final int? ms = _renderMs[_visiblePage];
-    final String timing = ms == null ? 'not rendered yet' : '${ms}ms';
-    return '$_nativeNote | open=${_loadMs}ms | view=p$_visiblePage '
-        'render=$timing | rendered=${_renderMs.length}/33 | '
+    return 'PNG IMAGE MODE — PDFium disabled — 33 pages | '
+        'view=p$_visiblePage | decoded=${_pages.decodedCount} | '
+        'cached=${_pages.cachedCount} | assets=${Phase23Pages.totalBytes} bytes | '
         'zoom=${_zoom.toStringAsFixed(1)}x | bg=$_bg';
   }
 
   Widget _body() {
-    if (_loading) {
-      return const Center(child: CircularProgressIndicator());
-    }
-    if (_error != null) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Text(
-            _error!,
-            style: const TextStyle(color: Colors.redAccent),
-            textAlign: TextAlign.center,
-          ),
-        ),
-      );
-    }
     final double pageWidth = _pageWidth(context);
+    final double pageHeight = _pageHeight(pageWidth);
     return ListView.separated(
       controller: _scroll,
       clipBehavior: Clip.hardEdge,
       padding: const EdgeInsets.only(bottom: 48),
-      cacheExtent: 400,
-      itemCount: _document!.pages.length,
+      cacheExtent: 720,
+      itemCount: Phase23Pages.pageCount + 1,
       separatorBuilder: (_, __) => const SizedBox(height: _pageGap),
       itemBuilder: (BuildContext context, int index) {
-        final int pageNumber = index + 1;
-        final PdfPage page = _document!.pages[index];
-        final double height = pageWidth * (page.height / page.width);
-        return _LazyPage(
-          key: ValueKey<int>(pageNumber),
-          document: _document!,
-          gate: _renderGate,
+        if (index == 0) {
+          return _StaticControlPage(
+            pageWidth: pageWidth,
+            canvasHeight: _controlCanvasHeight,
+            zoom: _zoom,
+          );
+        }
+        final int pageNumber = index;
+        return _PngPage(
+          key: ValueKey<String>('${Phase23Pages.fingerprint}-$pageNumber'),
+          store: _pages,
           pageNumber: pageNumber,
           pageWidth: pageWidth,
-          pageHeight: height,
+          pageHeight: pageHeight,
           background: _bg,
           zoom: _zoom,
-          dpiScale: _dpiScale,
-          onRendered: _noteRender,
         );
       },
     );
@@ -342,7 +287,7 @@ class _PageJumpBar extends StatelessWidget {
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: 8),
-        itemCount: Phase12TransparencyScreen.expectedPages,
+        itemCount: Phase23Pages.pageCount,
         separatorBuilder: (_, __) => const SizedBox(width: 6),
         itemBuilder: (BuildContext context, int index) {
           final int page = index + 1;
@@ -400,69 +345,54 @@ class _BgSelector extends StatelessWidget {
   }
 }
 
-class _LazyPage extends StatefulWidget {
-  const _LazyPage({
+class _PngPage extends StatefulWidget {
+  const _PngPage({
     super.key,
-    required this.document,
-    required this.gate,
+    required this.store,
     required this.pageNumber,
     required this.pageWidth,
     required this.pageHeight,
     required this.background,
     required this.zoom,
-    required this.dpiScale,
-    required this.onRendered,
   });
 
-  final PdfDocument document;
-  final Phase21RenderGate gate;
+  final Phase23LoadCoordinator<ui.Image> store;
   final int pageNumber;
   final double pageWidth;
   final double pageHeight;
   final _BgMode background;
   final double zoom;
-  final double dpiScale;
-  final void Function(int pageNumber, int ms) onRendered;
 
   @override
-  State<_LazyPage> createState() => _LazyPageState();
+  State<_PngPage> createState() => _PngPageState();
 }
 
-class _LazyPageState extends State<_LazyPage> {
+class _PngPageState extends State<_PngPage> {
   final TransformationController _zoomController = TransformationController();
-  ui.Image? _image;
-  bool _closed = false;
-  int _generation = 0;
   double _localScale = 1;
-  PdfPageRenderCancellationToken? _cancel;
 
   @override
   void initState() {
     super.initState();
     _zoomController.addListener(_onLocalZoom);
     _applyZoom(widget.zoom);
-    _startRender();
+    widget.store.pin(widget.pageNumber);
   }
 
   @override
-  void didUpdateWidget(covariant _LazyPage oldWidget) {
+  void didUpdateWidget(covariant _PngPage oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.zoom != widget.zoom) {
-      _applyZoom(widget.zoom);
-    }
+    if (oldWidget.zoom != widget.zoom) _applyZoom(widget.zoom);
     if (oldWidget.pageNumber != widget.pageNumber) {
-      _releaseImage();
-      _startRender();
+      oldWidget.store.unpin(oldWidget.pageNumber);
+      widget.store.pin(widget.pageNumber);
     }
   }
 
   @override
   void dispose() {
-    _closed = true;
-    _generation++;
-    _cancel?.cancel();
+    widget.store.unpin(widget.pageNumber);
     _zoomController.removeListener(_onLocalZoom);
-    _releaseImage();
     _zoomController.dispose();
     super.dispose();
   }
@@ -478,105 +408,22 @@ class _LazyPageState extends State<_LazyPage> {
     _zoomController.value = Matrix4.identity()..scale(zoom);
   }
 
-  void _releaseImage() {
-    final ui.Image? previous = _image;
-    _image = null;
-    previous?.dispose();
-  }
-
-  bool _owns(int pageNumber, int generation) {
-    return phase21ResultIsCurrent(
-      requestedPage: pageNumber,
-      requestedGeneration: generation,
-      currentPage: widget.pageNumber,
-      currentGeneration: _generation,
-      closed: _closed,
-    );
-  }
-
-  void _startRender() {
-    final int generation = ++_generation;
-    final int pageNumber = widget.pageNumber;
-    _cancel?.cancel();
-    widget.gate.schedule(() => _render(pageNumber, generation));
-  }
-
-  Future<void> _render(int pageNumber, int generation) async {
-    if (!_owns(pageNumber, generation)) return;
-    final Stopwatch watch = Stopwatch()..start();
-    PdfImage? pdfImage;
-    try {
-      final PdfPage page = widget.document.pages[pageNumber - 1];
-      final PdfPageRenderCancellationToken token =
-          page.createCancellationToken();
-      _cancel = token;
-      pdfImage = await page.render(
-        fullWidth: page.width * widget.dpiScale,
-        fullHeight: page.height * widget.dpiScale,
-        backgroundColor: Colors.transparent,
-        cancellationToken: token,
-      );
-      if (pdfImage == null || !_owns(pageNumber, generation)) {
-        pdfImage?.dispose();
-        pdfImage = null;
-        return;
-      }
-      // Copy the native buffer before decode. createImage reads that buffer
-      // asynchronously, and the next page must not share it.
-      final Uint8List pixels = Uint8List.fromList(pdfImage.pixels);
-      final int width = pdfImage.width;
-      final int height = pdfImage.height;
-      final ui.PixelFormat format = pdfImage.format;
-      pdfImage.dispose();
-      pdfImage = null;
-      if (!_owns(pageNumber, generation)) return;
-      final ui.Image image = await _decode(pixels, width, height, format);
-      watch.stop();
-      if (!mounted || !_owns(pageNumber, generation)) {
-        image.dispose();
-        return;
-      }
-      _releaseImage();
-      setState(() => _image = image);
-      widget.onRendered(pageNumber, watch.elapsedMilliseconds);
-    } catch (error, stack) {
-      debugPrint('[phase21] page $pageNumber render error $error\n$stack');
-    } finally {
-      pdfImage?.dispose();
-    }
-  }
-
-  Future<ui.Image> _decode(
-    Uint8List pixels,
-    int width,
-    int height,
-    ui.PixelFormat format,
-  ) {
-    final Completer<ui.Image> completer = Completer<ui.Image>();
-    ui.decodeImageFromPixels(
-      pixels,
-      width,
-      height,
-      format,
-      completer.complete,
-    );
-    return completer.future;
-  }
-
   @override
   Widget build(BuildContext context) {
+    final ui.Image? image = widget.store.readyFor(widget.pageNumber);
     final bool zoomed = _localScale > 1.01;
+    final Object? error = widget.store.errorFor(widget.pageNumber);
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         mainAxisSize: MainAxisSize.min,
-        children: [
+        children: <Widget>[
           SizedBox(
             height: _Phase12TransparencyScreenState._labelHeight,
             child: Text(
               'Original page ${widget.pageNumber}'
-              '${_image == null ? '' : '  ·  ${_image!.width}×${_image!.height}'}',
+              '${image == null ? '' : '  ·  ${image.width}×${image.height}'}',
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: const TextStyle(color: Color(0xFFE6DAC2), fontSize: 12),
@@ -600,13 +447,21 @@ class _LazyPageState extends State<_LazyPage> {
                   height: widget.pageHeight,
                   child: Stack(
                     fit: StackFit.expand,
-                    children: [
+                    children: <Widget>[
                       Positioned.fill(child: _backgroundLayer()),
-                      if (_image == null)
+                      if (image == null && error != null)
+                        Center(
+                          child: Text(
+                            '$error',
+                            style: const TextStyle(color: Colors.redAccent),
+                            textAlign: TextAlign.center,
+                          ),
+                        )
+                      else if (image == null)
                         const Center(child: CircularProgressIndicator())
                       else
                         RawImage(
-                          image: _image,
+                          image: image,
                           fit: BoxFit.fill,
                           filterQuality: FilterQuality.medium,
                         ),
@@ -635,6 +490,129 @@ class _LazyPageState extends State<_LazyPage> {
         );
     }
   }
+}
+
+class _StaticControlPage extends StatefulWidget {
+  const _StaticControlPage({
+    required this.pageWidth,
+    required this.canvasHeight,
+    required this.zoom,
+  });
+
+  final double pageWidth;
+  final double canvasHeight;
+  final double zoom;
+
+  @override
+  State<_StaticControlPage> createState() => _StaticControlPageState();
+}
+
+class _StaticControlPageState extends State<_StaticControlPage> {
+  final TransformationController _zoomController = TransformationController();
+
+  @override
+  void initState() {
+    super.initState();
+    _applyZoom(widget.zoom);
+  }
+
+  @override
+  void didUpdateWidget(covariant _StaticControlPage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.zoom != widget.zoom) _applyZoom(widget.zoom);
+  }
+
+  @override
+  void dispose() {
+    _zoomController.dispose();
+    super.dispose();
+  }
+
+  void _applyZoom(double zoom) {
+    _zoomController.value = Matrix4.identity()..scale(zoom);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final bool zoomed = widget.zoom > 1.01;
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          const SizedBox(
+            height: _Phase12TransparencyScreenState._labelHeight,
+            child: Text(
+              'Static control — not from PDFium',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(color: Color(0xFFE6DAC2), fontSize: 12),
+            ),
+          ),
+          const SizedBox(height: _Phase12TransparencyScreenState._labelGap),
+          SizedBox(
+            width: widget.pageWidth,
+            height: widget.canvasHeight,
+            child: ClipRect(
+              child: InteractiveViewer(
+                transformationController: _zoomController,
+                minScale: 1,
+                maxScale: 4,
+                panEnabled: zoomed,
+                scaleEnabled: true,
+                clipBehavior: Clip.hardEdge,
+                boundaryMargin: EdgeInsets.zero,
+                child: SizedBox(
+                  width: widget.pageWidth,
+                  height: widget.canvasHeight,
+                  child: const CustomPaint(painter: _ControlPainter()),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ControlPainter extends CustomPainter {
+  const _ControlPainter();
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    canvas.drawRect(
+      Offset.zero & size,
+      Paint()..color = const Color(0xFF123C6B),
+    );
+    canvas.drawRect(
+      Rect.fromLTWH(0, size.height / 2, size.width, size.height / 2),
+      Paint()..color = const Color(0xFFC4551D),
+    );
+    canvas.drawLine(
+      Offset.zero,
+      Offset(size.width, size.height),
+      Paint()
+        ..color = const Color(0xFFFFE08A)
+        ..strokeWidth = 4,
+    );
+    final TextPainter label = TextPainter(
+      text: const TextSpan(
+        text: 'STATIC CONTROL',
+        style: TextStyle(
+          color: Color(0xFFFFFFFF),
+          fontSize: 18,
+          fontWeight: FontWeight.w700,
+        ),
+      ),
+      textDirection: TextDirection.ltr,
+    )..layout();
+    label.paint(canvas, const Offset(16, 16));
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
 
 class _CheckerPainter extends CustomPainter {
